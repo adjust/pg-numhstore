@@ -240,7 +240,7 @@ procedure = hstore_mul
 CREATE FUNCTION hstore_length(store hstore) RETURNS integer AS $$
   BEGIN
     RETURN
-      array_length(keys(store));
+      array_length(akeys(store));
   END         
 $$ LANGUAGE 'plpgsql' IMMUTABLE STRICT;
 
