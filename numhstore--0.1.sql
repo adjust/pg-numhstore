@@ -240,7 +240,7 @@ procedure = hstore_mul
 CREATE FUNCTION hstore_length(store hstore) RETURNS integer AS $$
   BEGIN
     RETURN
-      array_length(akeys(store));
+      array_length(akeys(store),1);
   END         
 $$ LANGUAGE 'plpgsql' IMMUTABLE STRICT;
 
@@ -363,7 +363,7 @@ initcond = ''
 CREATE FUNCTION hstore_sum_up(store inthstore) RETURNS bigint AS $$
 BEGIN
 RETURN
-  SUM(value::integer) FROM each(store);
+  SUM(value::bigint) FROM each(store);
 END
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
 
