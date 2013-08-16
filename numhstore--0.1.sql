@@ -96,7 +96,7 @@ CREATE FUNCTION hstore_add(a inthstore, b inthstore)
 RETURNS inthstore AS
 '/usr/local/lib/adjust/add.so', 'welle_add' LANGUAGE C IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION hstore_add(a floathstore, b floathstore) RETURNS floathstore AS $$
+CREATE FUNCTION hstore_add(a floathstore, b floathstore) RETURNS floathstore AS $$
 BEGIN
 RETURN
 hstore(
@@ -311,6 +311,17 @@ rightarg = integer,
 procedure = hstore_eq
 );
 
+CREATE OPERATOR + (
+leftarg = inthstore,
+rightarg = inthstore,
+procedure = hstore_add
+);
+
+CREATE OPERATOR + (
+leftarg = floathstore,
+rightarg = floathstore,
+procedure = hstore_add
+);
 
 --return the average of hstores
 CREATE AGGREGATE avg (
