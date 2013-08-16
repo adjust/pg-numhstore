@@ -109,6 +109,32 @@ USING (key);
 END;
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
 
+CREATE FUNCTION hstore_sub(a floathstore, b floathstore) RETURNS floathstore AS $$
+BEGIN
+RETURN
+hstore(
+  array_agg(key),
+  array_agg((COALESCE(l.value::numeric,0) - COALESCE(r.value::numeric,0))::text)
+)
+FROM each(a) l      
+FULL OUTER JOIN each(b) r
+USING (key);
+END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE FUNCTION hstore_sub(a inthstore, b inthstore) RETURNS inthstore AS $$
+BEGIN
+RETURN
+hstore(
+  array_agg(key),
+  array_agg((COALESCE(l.value::bigint,0) - COALESCE(r.value::bigint,0))::text)
+)
+FROM each(a) l      
+FULL OUTER JOIN each(b) r
+USING (key);
+END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
 
 --used for avg(hstore) first array holds hstore sum and count of keys
 CREATE FUNCTION hstore_accum(a inthstore[], b inthstore) RETURNS inthstore[] AS $$
@@ -236,6 +262,21 @@ leftarg = floathstore,
 rightarg = numeric,
 procedure = hstore_mul
 );
+
+
+-- the - operator for the hstore div
+CREATE OPERATOR - (
+leftarg = inthstore,
+rightarg = inthstore,
+procedure = hstore_sub
+);
+
+CREATE OPERATOR - (
+leftarg = floathstore,
+rightarg = floathstore,
+procedure = hstore_sub
+);
+
 
 CREATE FUNCTION hstore_length(store hstore) RETURNS integer AS $$
   BEGIN
