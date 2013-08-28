@@ -7,6 +7,10 @@ MODULE_big = array_count
 OBJS = src/array_count.o src/avltree.o		
 PG_CPPFLAGS += -std=c99
 
+TESTS        = $(wildcard test/sql/*.sql)
+REGRESS      = $(patsubst test/sql/%.sql,%,$(TESTS))
+REGRESS_OPTS = --inputdir=test --load-language=plpgsql
+
 PG_CONFIG = pg_config
 
 all: concat
