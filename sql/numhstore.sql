@@ -87,18 +87,18 @@ CREATE CAST (inthstore AS floathstore) WITHOUT FUNCTION AS IMPLICIT;
 
 CREATE FUNCTION array_count(integer[])
 RETURNS inthstore AS
-'/usr/local/lib/adjust/count.so', 'welle_count' LANGUAGE C IMMUTABLE STRICT;
+'$libdir/array_count.so', 'array_count' LANGUAGE C IMMUTABLE STRICT;
 
 CREATE FUNCTION array_count(text[])
 RETURNS inthstore AS
-'/usr/local/lib/adjust/count.so', 'welle_count' LANGUAGE C IMMUTABLE STRICT;
+'$libdir/array_count.so', 'array_count' LANGUAGE C IMMUTABLE STRICT;
 
 -- adds two hstores values by converting them to integers
--- Select hstore_add('a=>1,b=>2'::hstore,'b=>1,c=>2'::hstore)
+-- Select hstore_add('a=>1,b=>2'::hstore,'b=>1,c=>2'::inthstore)
 -- => {'a'=>'1','b'=>'3','c'=>'2'}
 CREATE FUNCTION hstore_add(a inthstore, b inthstore)
 RETURNS inthstore AS
-'/usr/local/lib/adjust/add.so', 'welle_add' LANGUAGE C IMMUTABLE;
+'$libdir/hstore_add.so', 'hstore_add' LANGUAGE C IMMUTABLE;
 
 CREATE FUNCTION hstore_add(a floathstore, b floathstore) RETURNS floathstore AS $$
 BEGIN
