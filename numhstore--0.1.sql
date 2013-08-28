@@ -84,10 +84,14 @@ CREATE CAST (inthstore AS floathstore) WITHOUT FUNCTION AS IMPLICIT;
 -- e.g.
 -- Select array_count(ARRAY['de','de','us'])
 -- => { 'de' => '2', 'us' => '1' }
-CREATE FUNCTION array_count(arr text[])
+
+CREATE FUNCTION array_count(integer[])
 RETURNS inthstore AS
 '/usr/local/lib/adjust/count.so', 'welle_count' LANGUAGE C IMMUTABLE STRICT;
 
+CREATE FUNCTION array_count(text[])
+RETURNS inthstore AS
+'/usr/local/lib/adjust/count.so', 'welle_count' LANGUAGE C IMMUTABLE STRICT;
 
 -- adds two hstores values by converting them to integers
 -- Select hstore_add('a=>1,b=>2'::hstore,'b=>1,c=>2'::hstore)
