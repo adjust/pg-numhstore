@@ -103,7 +103,7 @@ void adeven_add_insert_array( Array *a, char * key, long val, int elem_size )
         memcpy( a->found, found_swap, sizeof( bool ) * i );
         pfree( found_swap );
 
-        for( ; i < a->size; ++i )
+        for( i ; i < a->size; ++i )
         {
             a->vals[i]  = 0;
             a->sizes[i] = 0;
