@@ -1,0 +1,42 @@
+SELECT array_count(ARRAY['de','de','us']);
+     array_count      
+----------------------
+ "de"=>"2", "us"=>"1"
+(1 row)
+
+SELECT array_count(ARRAY[1,5,9,5,10,5,5]);
+               array_count               
+-----------------------------------------
+ "1"=>"1", "5"=>"4", "9"=>"1", "10"=>"1"
+(1 row)
+
+SELECT hstore_add('a=>1,b=>2'::hstore,'b=>1,c=>2'::inthstore);
+          hstore_add          
+------------------------------
+ "a"=>"1", "b"=>"3", "c"=>"2"
+(1 row)
+
+SELECT hstore_add('a=>1,b=>1000000000'::hstore,'b=>1,c=>2'::inthstore);
+              hstore_add               
+---------------------------------------
+ "a"=>"1", "b"=>"1000000001", "c"=>"2"
+(1 row)
+
+SELECT hstore_add('a=>1.3,b=>2.5'::hstore,'b=>1.2,c=>2.4'::floathstore);
+             hstore_add             
+------------------------------------
+ "a"=>"1.3", "b"=>"3.7", "c"=>"2.4"
+(1 row)
+
+SELECT hstore_add('a=>1,b=>2'::hstore,'b=>1,c=>2'::inthstore);
+          hstore_add          
+------------------------------
+ "a"=>"1", "b"=>"3", "c"=>"2"
+(1 row)
+
+SELECT hstore_sub('a=>2,b=>3'::hstore,'b=>1,c=>2'::inthstore);
+          hstore_sub           
+-------------------------------
+ "a"=>"2", "b"=>"2", "c"=>"-2"
+(1 row)
+

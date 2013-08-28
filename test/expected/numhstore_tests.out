@@ -1,5 +1,3 @@
-CREATE EXTENSION hstore;
-CREATE EXTENSION numhstore;
 SELECT array_count(ARRAY['de','de','us']);
      array_count      
 ----------------------
@@ -36,10 +34,12 @@ SELECT hstore_sub('a=>1.3,b=>2.5'::hstore,'b=>1.2,c=>2.4'::floathstore);
  "a"=>"1.3", "b"=>"1.3", "c"=>"-2.4"
 (1 row)
 
-SELECT AVG(store) FROM (VALUES('a=>2, b=4'),('a=>4, b=6 c=>6'::inthstore) )t(store);
-ERROR:  Syntax error near '6' at position 8
-LINE 1: SELECT AVG(store) FROM (VALUES('a=>2, b=4'),('a=>4, b=6 c=>6...
-                                                     ^
+SELECT AVG(store) FROM (VALUES('a=>2, b=>4'),('a=>4, b=>6, c=>6'::inthstore) )t(store);
+                                       avg                                       
+---------------------------------------------------------------------------------
+ "a"=>"3.0000000000000000", "b"=>"5.0000000000000000", "c"=>"6.0000000000000000"
+(1 row)
+
 SELECT hstore_div('foo=>10, bar => 15'::inthstore, 5);
                         hstore_div                        
 ----------------------------------------------------------
