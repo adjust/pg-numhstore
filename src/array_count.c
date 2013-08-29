@@ -77,7 +77,7 @@ size_t hstoreCheckKeyLen( size_t len )
     if( len > HSTORE_MAX_KEY_LEN )
         ereport( ERROR,
                 ( errcode(ERRCODE_STRING_DATA_RIGHT_TRUNCATION ),
-                 errmsg( "string too long for hstore key" ) ) );
+                  errmsg( "string too long for hstore key" ) ) );
     return len;
 }
 
@@ -203,22 +203,36 @@ HStore * adeven_count_int_array( Datum* i_data, int n, bool * nulls )
     int * c;
     int exp = 1;
     int m = 0;
+    int notNullCnt = 0;
+    int notNullIter = 0;
     Pairs * pairs;
     HStore * out;
     int4 buflen = 0;
 
-    a = palloc0( sizeof( int ) * ( n ) );
-    b = palloc0( sizeof( int ) * ( n ) );
-    c = palloc0( sizeof( int ) * ( n ) );
-
-    for( i = 0 ; i < n; ++i )
-    {
-            a[i] = DatumGetInt32( i_data[i] );
-            if( a[i] > biggest )
-            {
-                biggest = a[i];
-            }
+    for( i = 0; i < n; ++i ) {
+        if( !nulls[i] ) {
+            ++notNullCnt;
+        }
     }
+
+    notNullIter = notNullCnt;
+
+    a = palloc0( sizeof( int ) * notNullCnt );
+    b = palloc0( sizeof( int ) * notNullCnt );
+    c = palloc0( sizeof( int ) * notNullCnt );
+
+    for( i = 0; i < n; ++i )
+    {
+        if( !nulls[i] ) {
+            a[--notNullIter] = DatumGetInt32( i_data[i] );
+            if( a[notNullIter] > biggest )
+            {
+                biggest = a[notNullIter];
+            }
+        }
+    }
+
+    n = notNullCnt;
 
     while( biggest / exp > 0 )
     {
@@ -328,7 +342,7 @@ Datum array_count( PG_FUNCTION_ARGS )
             &i_typlen,
             &i_typbyval,
             &i_typalign
-    );
+            );
 
 
     deconstruct_array(
@@ -340,7 +354,7 @@ Datum array_count( PG_FUNCTION_ARGS )
             &i_data,
             &nulls,
             &n
-    );
+            );
 
     switch( i_eltype )
     {
