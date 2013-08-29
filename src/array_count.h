@@ -28,4 +28,3 @@ void adeven_count_insert_array( adeven_count_Array *a, char* elem, size_t elem_s
 int adeven_count_get_digit_num( int number );
 HStore * adeven_count_int_array( Datum* i_data, int n, bool * nulls );
 HStore * adeven_count_text_array( Datum* i_data, int n, bool * nulls );
-void adeven_count_free_array( adeven_count_Array *a );

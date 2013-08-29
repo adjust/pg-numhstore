@@ -56,22 +56,6 @@ void adeven_count_insert_array( adeven_count_Array *a, char* elem, size_t elem_s
     a->array[a->used++] = elem;
 }
 
-void adeven_count_free_array( adeven_count_Array *a )
-{
-    int i;
-    for( i = 0; i < a->used; ++i )
-    {
-        pfree( a->array[i] );
-        pfree( a->counts_str[i] );
-    }
-    pfree( a->array );
-    pfree( a->counts_str );
-    pfree( a->counts );
-    pfree( a->sizes );
-    a->array = NULL;
-    a->used = a->size = 0;
-}
-
 size_t hstoreCheckKeyLen( size_t len )
 {
     if( len > HSTORE_MAX_KEY_LEN )
@@ -303,9 +287,6 @@ HStore * adeven_count_int_array( Datum* i_data, int n, bool * nulls )
         buflen += pairs[i].vallen;
     }
     out = hstorePairs( pairs, n, buflen );
-    pfree( a );
-    pfree( b );
-    pfree( c );
     return out;
 }
 
