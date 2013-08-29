@@ -181,18 +181,39 @@ HStore * adeven_count_text_array( Datum* i_data, int n, bool * nulls )
 }
 HStore * adeven_count_int_array( Datum* i_data, int n, bool * nulls )
 {
-    int i, j, biggest = 0;
-    int * a;
-    int * b;
-    int * c;
+    int i = 0, j = 0, biggest = 0;
+    int * a = NULL;
+    int * b = NULL;
+    int * c = NULL;
     int exp = 1;
     int m = 0;
     int notNullCnt = 0;
-    Pairs * pairs;
-    HStore * out;
+    Pairs * pairs = NULL;
+    HStore * out = NULL;
     int4 buflen = 0;
 
-    a = palloc( sizeof( int ) * (n+1) );
+    if( n == 1 ) {
+        pairs = palloc0( sizeof( Pairs ) );
+        int value = DatumGetInt32( i_data[0] );
+        int digit_key_num = adeven_count_get_digit_num( value );
+        char * dig_key_str = palloc0( digit_key_num );
+        char * dig_val_str = palloc0( 1 );
+        sprintf( dig_key_str, "%d", value );
+        sprintf( dig_val_str, "%d", 1 );
+        pairs[0].key = dig_key_str;
+        pairs[0].keylen =  digit_key_num;
+        pairs[0].val = dig_val_str;
+        pairs[0].vallen =  1;
+        pairs[0].isnull = false;
+        pairs[0].needfree = false;
+        buflen += pairs[0].keylen;
+        buflen += pairs[0].vallen;
+        out = hstorePairs( pairs, n, buflen );
+        return out;
+    }
+
+
+    a = palloc( sizeof( int ) * ( n + 1 ) );
     for( i=0;i<n+1;++i)
         a[i] = -1;
     b = palloc0( sizeof( int ) * n );
@@ -263,15 +284,9 @@ HStore * adeven_count_int_array( Datum* i_data, int n, bool * nulls )
         i=j;
     }
 
-    n = 0;
-    while( c[n] != 0 )
-    {
-        ++n;
-    }
+    pairs = palloc0( m * sizeof( Pairs ) );
 
-    pairs = palloc0( n * sizeof( Pairs ) );
-
-    for( i = 0; i < n; ++i )
+    for( i = 0; i < m; ++i )
     {
         int digit_key_num = adeven_count_get_digit_num( b[i] );
         int digit_val_num = adeven_count_get_digit_num( c[i] );
@@ -288,7 +303,7 @@ HStore * adeven_count_int_array( Datum* i_data, int n, bool * nulls )
         buflen += pairs[i].keylen;
         buflen += pairs[i].vallen;
     }
-    out = hstorePairs( pairs, n, buflen );
+    out = hstorePairs( pairs, m, buflen );
     return out;
 }
 
