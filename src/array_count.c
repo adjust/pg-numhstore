@@ -335,6 +335,9 @@ Datum array_count( PG_FUNCTION_ARGS )
             &n
             );
 
+    if( n == 0 || ( n == 1 && nulls[0] ) )
+        PG_RETURN_NULL();
+
     switch( i_eltype )
     {
         case INT4OID:
