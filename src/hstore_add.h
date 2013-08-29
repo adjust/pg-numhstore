@@ -24,7 +24,7 @@ void adeven_add_init_array( Array *a, size_t initial_size );
 void adeven_add_insert_array( Array *a, char * key, long val, int elem_size );
 void adeven_add_insert_array( Array *a, char * key, long val, int elem_size );
 void adeven_add_free_array( Array *a );
-HStore * hstoreUpgrade(Datum orig);
+HStore * hstoreUpgrade( Datum orig );
 int adeven_add_get_digit_num( long number );
 void adeven_add_read_pair( HEntry * entries, char * base, int index, char ** key, long * vali, size_t * keylen );
 int adeven_add_min( int a, int b );

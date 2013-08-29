@@ -111,9 +111,9 @@ void adeven_add_free_array( Array *a )
     a->used = a->size = 0;
 }
 
-HStore * hstoreUpgrade(Datum orig)
+HStore * hstoreUpgrade( Datum orig )
 {
-	HStore	   *hs = (HStore *) PG_DETOAST_DATUM(orig);
+	HStore	   *hs = ( HStore * ) PG_DETOAST_DATUM( orig );
     return hs;
 }
 
@@ -135,12 +135,12 @@ void adeven_add_read_pair( HEntry * entries, char * base, int index, char ** key
     size_t vallen = HS_VALLEN( entries, index );
     char * val = palloc0( ( vallen + 1 ) * sizeof( char ) );
     memset( val, '\0', vallen + 1 );
-    memcpy(val, HS_VAL( entries, base, index ), vallen );
+    memcpy( val, HS_VAL( entries, base, index ), vallen );
 
     *keylen = HS_KEYLEN( entries, index );
     *key = palloc0( ( *keylen + 1 ) * sizeof( char ) );
     memset( *key, '\0', *keylen + 1 );
-    memcpy(*key, HS_KEY( entries, base, index ), *keylen );
+    memcpy( *key, HS_KEY( entries, base, index ), *keylen );
     *vali = atol( val );
 
     pfree( val );
@@ -246,13 +246,13 @@ Datum hstore_add( PG_FUNCTION_ARGS )
     // finish by appending the longer list
     while( index1 < count1 )
     {
-        adeven_add_read_pair( entries1, base1, index1, &key1, &val1, &keylen1);
+        adeven_add_read_pair( entries1, base1, index1, &key1, &val1, &keylen1 );
         adeven_add_insert_array( &a, key1, val1, ( int )keylen1 );
         index1 += 1;
     }
     while( index2 < count2 )
     {
-        adeven_add_read_pair( entries2, base2, index2, &key2, &val2, &keylen2);
+        adeven_add_read_pair( entries2, base2, index2, &key2, &val2, &keylen2 );
         adeven_add_insert_array( &a, key2, val2, ( int )keylen2 );
         index2 += 1;
     }

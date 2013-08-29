@@ -15,7 +15,7 @@ void adeven_count_init_array( adeven_count_Array *a, size_t initial_size )
     }
 }
 
-void adeven_count_insert_array(adeven_count_Array *a, char* elem, size_t elem_size )
+void adeven_count_insert_array( adeven_count_Array *a, char* elem, size_t elem_size )
 {
     if( a->used == a->size )
     {
@@ -76,7 +76,7 @@ size_t hstoreCheckKeyLen( size_t len )
 {
     if( len > HSTORE_MAX_KEY_LEN )
         ereport( ERROR,
-                ( errcode(ERRCODE_STRING_DATA_RIGHT_TRUNCATION ),
+                ( errcode( ERRCODE_STRING_DATA_RIGHT_TRUNCATION ),
                   errmsg( "string too long for hstore key" ) ) );
     return len;
 }
@@ -178,7 +178,7 @@ HStore * adeven_count_text_array( Datum* i_data, int n, bool * nulls )
         {
             size_t datum_len = a.sizes[j];
             int digit_num = adeven_count_get_digit_num( a.counts[j] );
-            char * dig_str = palloc0(digit_num);
+            char * dig_str = palloc0( digit_num );
             sprintf( dig_str, "%d", a.counts[j] );
             a.counts_str[j] = dig_str;
             pairs[i].key = a.array[j];
@@ -209,8 +209,10 @@ HStore * adeven_count_int_array( Datum* i_data, int n, bool * nulls )
     HStore * out;
     int4 buflen = 0;
 
-    for( i = 0; i < n; ++i ) {
-        if( !nulls[i] ) {
+    for( i = 0; i < n; ++i )
+    {
+        if( !nulls[i] )
+        {
             ++notNullCnt;
         }
     }
@@ -223,7 +225,8 @@ HStore * adeven_count_int_array( Datum* i_data, int n, bool * nulls )
 
     for( i = 0; i < n; ++i )
     {
-        if( !nulls[i] ) {
+        if( !nulls[i] )
+        {
             a[--notNullIter] = DatumGetInt32( i_data[i] );
             if( a[notNullIter] > biggest )
             {
@@ -293,8 +296,8 @@ HStore * adeven_count_int_array( Datum* i_data, int n, bool * nulls )
     {
         int digit_key_num = adeven_count_get_digit_num( b[i] );
         int digit_val_num = adeven_count_get_digit_num( c[i] );
-        char * dig_key_str = palloc0(digit_key_num);
-        char * dig_val_str = palloc0(digit_val_num);
+        char * dig_key_str = palloc0( digit_key_num );
+        char * dig_val_str = palloc0( digit_val_num );
         sprintf( dig_key_str, "%d", b[i] );
         sprintf( dig_val_str, "%d", c[i] );
         pairs[i].key = dig_key_str;

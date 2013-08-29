@@ -172,23 +172,29 @@ AvlTree insert( char * key, int keylen, int value, AvlTree t )
         if( cmp < 0 )
         {
             t->left = insert( key, keylen, value, t->left );
-            if( height( t->left ) - height( t->right ) == 2 ) {
-                if( compare( key, keylen, t->left ) ) {
+            if( height( t->left ) - height( t->right ) == 2 )
+            {
+                if( compare( key, keylen, t->left ) )
+                {
                     t = singleRotateWithLeft( t );
                 }
-                else {
+                else
+                {
                     t = doubleRotateWithLeft( t );
                 }
             }
         }
-        else if( cmp > 0)
+        else if( cmp > 0 )
         {
             t->right = insert( key, keylen, value, t->right );
-            if( height( t->right ) - height( t->left ) == 2 ) {
-                if( compare( key, keylen, t->right ) ) {
+            if( height( t->right ) - height( t->left ) == 2 )
+            {
+                if( compare( key, keylen, t->right ) )
+                {
                     t = singleRotateWithRight( t );
                 }
-                else {
+                else
+                {
                     t = doubleRotateWithRight( t );
                 }
             }

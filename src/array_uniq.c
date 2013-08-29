@@ -4,12 +4,12 @@ Datum * adeven_uniq_radix_uniq( Datum *data, int n, int * dims )
 {
     Datum * c;
     int i, j, m = 0, exp = 1;
-    int * a = palloc0( n * sizeof(n) );
-    int * b = palloc0( n * sizeof(n) );
+    int * a = palloc0( n * sizeof( n ) );
+    int * b = palloc0( n * sizeof( n ) );
     for( i = 0; i < n; i++ )
     {
-        a[i] = DatumGetInt32(data[i]);
-        if ( a[i] > m)
+        a[i] = DatumGetInt32( data[i] );
+        if ( a[i] > m )
         {
             m = a[i];
         }
@@ -105,11 +105,11 @@ Datum array_uniq( PG_FUNCTION_ARGS )
             &n
     );
 
-    ndims = ARR_NDIM(input);
-    dims  = ARR_DIMS(input);
-    lbs   = ARR_LBOUND(input);
+    ndims = ARR_NDIM( input );
+    dims  = ARR_DIMS( input );
+    lbs   = ARR_LBOUND( input );
 
-    uniq = adeven_uniq_radix_uniq(i_data, n, dims);
+    uniq = adeven_uniq_radix_uniq( i_data, n, dims );
     result = construct_md_array(
             ( void * )uniq,
             NULL,
@@ -121,6 +121,6 @@ Datum array_uniq( PG_FUNCTION_ARGS )
             i_typbyval,
             i_typalign
     );
-    pfree(uniq);
+    pfree( uniq );
     PG_RETURN_POINTER( result );
 }
