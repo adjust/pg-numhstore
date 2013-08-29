@@ -2,7 +2,7 @@ EXTENSION = numhstore
 EXTVERSION   = $(shell grep default_version $(EXTENSION).control | \
 			   sed -e "s/default_version[[:space:]]*=[[:space:]]*'\([^']*\)'/\1/")
 DATA         = $(filter-out $(wildcard sql/*--*.sql),$(wildcard sql/*.sql))
-MODULES = src/hstore_add src/array_uniq
+MODULES = src/hstore_add
 MODULE_big = array_count
 OBJS = src/array_count.o src/avltree.o		
 PG_CPPFLAGS += -std=c99

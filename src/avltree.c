@@ -37,23 +37,28 @@ static int min( int lhs, int rhs )
 
 int compare( char * key, int keylen, AvlTree node )
 {
+    int len;
+    int cmp;
+
     if( keylen < node->keylen )
         return -1;
     if( keylen > node->keylen )
         return 1;
 
-    int len = min( keylen, node->keylen );
-    int cmp = strncmp( key, node->key, len );
+    len = min( keylen, node->keylen );
+    cmp = strncmp( key, node->key, len );
 
     return cmp;
 }
 
 Position find( char * key, int keylen, AvlTree t )
 {
+    int cmp;
+
     if( t == NULL )
         return NULL;
 
-    int cmp = compare( key, keylen, t );
+    cmp = compare( key, keylen, t );
     if( cmp < 0 )
         return find( key, keylen, t->left );
     else if( cmp > 0 )
@@ -168,19 +173,31 @@ AvlTree insert( char * key, int keylen, int value, AvlTree t )
         {
             t->left = insert( key, keylen, value, t->left );
             if( height( t->left ) - height( t->right ) == 2 )
+            {
                 if( compare( key, keylen, t->left ) )
+                {
                     t = singleRotateWithLeft( t );
+                }
                 else
+                {
                     t = doubleRotateWithLeft( t );
+                }
+            }
         }
-        else if( cmp > 0)
+        else if( cmp > 0 )
         {
             t->right = insert( key, keylen, value, t->right );
             if( height( t->right ) - height( t->left ) == 2 )
+            {
                 if( compare( key, keylen, t->right ) )
+                {
                     t = singleRotateWithRight( t );
+                }
                 else
+                {
                     t = doubleRotateWithRight( t );
+                }
+            }
         }
     }
 
@@ -195,10 +212,11 @@ int value( Position p )
 
 // return number of nodes
 int sort_perm( Position p, int * perm ) {
+    int n;
     if( p == NULL )
         return 0;
 
-    int n = sort_perm( p->left, perm );
+    n = sort_perm( p->left, perm );
     perm[n++] = p->value;
     n += sort_perm( p->right, perm + n );
     return n;

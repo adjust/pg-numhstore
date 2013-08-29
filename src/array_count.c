@@ -1,23 +1,4 @@
-#include "postgres.h"
-#include "hstore.h"
-#include "avltree.h"
-#include "fmgr.h"
-#include <string.h>
-#include <utils/array.h>
-#include <catalog/pg_type.h>
-
-#ifdef PG_MODULE_MAGIC
-PG_MODULE_MAGIC;
-#endif
-
-typedef struct {
-    char ** array;
-    char ** counts_str;
-    size_t  used;
-    size_t  size;
-    int *   counts;
-    int *   sizes;
-} adeven_count_Array;
+#include "array_count.h"
 
 void adeven_count_init_array( adeven_count_Array *a, size_t initial_size )
 {
@@ -34,30 +15,38 @@ void adeven_count_init_array( adeven_count_Array *a, size_t initial_size )
     }
 }
 
-void adeven_count_insert_array(adeven_count_Array *a, char* elem, size_t elem_size )
+void adeven_count_insert_array( adeven_count_Array *a, char* elem, size_t elem_size )
 {
     if( a->used == a->size )
     {
+        char ** array_swap;
+        char ** counts_str_swap;
+        int * sizes_swap;
+        int * count_swap;
         int i = a->size;
         a->size *= 2;
-        char ** array_swap;
-            array_swap = a->array;
+
+        array_swap = a->array;
         a->array = ( char ** )palloc0( a->size * sizeof( char* ) );
         memcpy( a->array, array_swap, sizeof( char* ) * i );
         pfree( array_swap );
-        char ** counts_str_swap = a->counts_str;
+
+        counts_str_swap = a->counts_str;
         a->counts_str = ( char ** )palloc0( a->size * sizeof( char* ) );
         memcpy( a->counts_str, counts_str_swap, sizeof( char* ) * i );
         pfree( counts_str_swap );
-        int * count_swap = a->counts;
+
+        count_swap = a->counts;
         a->counts = ( int * )palloc0( a->size * sizeof( int ) );
         memcpy( a->counts, count_swap, sizeof( int ) * i );
         pfree( count_swap );
-        int * sizes_swap = a->sizes;
+
+        sizes_swap = a->sizes;
         a->sizes = ( int * )palloc0( a->size * sizeof( int ) );
         memcpy( a->sizes, sizes_swap, sizeof( int ) * i );
         pfree( sizes_swap );
-        for( i; i < a->size; ++i )
+
+        for( ; i < a->size; ++i )
         {
             a->counts[i] = 0;
             a->sizes[i]  = 0;
@@ -87,8 +76,8 @@ size_t hstoreCheckKeyLen( size_t len )
 {
     if( len > HSTORE_MAX_KEY_LEN )
         ereport( ERROR,
-                ( errcode(ERRCODE_STRING_DATA_RIGHT_TRUNCATION ),
-                 errmsg( "string too long for hstore key" ) ) );
+                ( errcode( ERRCODE_STRING_DATA_RIGHT_TRUNCATION ),
+                  errmsg( "string too long for hstore key" ) ) );
     return len;
 }
 
@@ -124,9 +113,9 @@ HStore * hstorePairs( Pairs *pairs, int4 pcount, int4 buflen )
 
 int adeven_count_get_digit_num( int number )
 {
+    size_t count = 0;
     if( number == 0 )
         return 1;
-    size_t count = 0;
     while( number != 0 )
     {
         number /= 10;
@@ -137,21 +126,28 @@ int adeven_count_get_digit_num( int number )
 
 HStore * adeven_count_text_array( Datum* i_data, int n, bool * nulls )
 {
+    int i, j;
+    int * perm;
+    AvlTree tree;
+    Pairs * pairs;
+
+    int4 buflen = 0;
+
+    HStore * out;
     adeven_count_Array a;
     adeven_count_init_array( &a, 100 );
-    AvlTree tree = make_empty( NULL );
-    int i, j;
+    tree = make_empty( NULL );
 
     for( i = 0; i < n; ++i )
     {
         if( ! nulls[i] )
         {
-            bool found = false;
+            Position position;
             size_t datum_len = VARSIZE( i_data[i] ) - VARHDRSZ;
             char * current_datum = ( char * ) palloc ( datum_len );
             memcpy( current_datum, VARDATA( i_data[i] ), datum_len );
 
-            Position position = find( current_datum, datum_len, tree );
+            position = find( current_datum, datum_len, tree );
             if( position == NULL )
             {
                 j = a.used;
@@ -169,13 +165,12 @@ HStore * adeven_count_text_array( Datum* i_data, int n, bool * nulls )
 
     // save sort permutation to create pairs in order of ascending keys
     // we assume that postgres stores the pairs in that order
-    int * perm = ( int * ) palloc ( a.used * sizeof( int ) );
+    perm = ( int * ) palloc ( a.used * sizeof( int ) );
     sort_perm( tree, perm );
 
     make_empty( tree );
 
-    Pairs * pairs = palloc0( a.used * sizeof( Pairs ) );
-    int4 buflen = 0;
+    pairs = palloc0( a.used * sizeof( Pairs ) );
     for( i = 0; i < a.used; ++i )
     {
         j = perm[i];
@@ -183,7 +178,7 @@ HStore * adeven_count_text_array( Datum* i_data, int n, bool * nulls )
         {
             size_t datum_len = a.sizes[j];
             int digit_num = adeven_count_get_digit_num( a.counts[j] );
-            char * dig_str = palloc0(digit_num);
+            char * dig_str = palloc0( digit_num );
             sprintf( dig_str, "%d", a.counts[j] );
             a.counts_str[j] = dig_str;
             pairs[i].key = a.array[j];
@@ -196,7 +191,6 @@ HStore * adeven_count_text_array( Datum* i_data, int n, bool * nulls )
             buflen += pairs[i].vallen;
         }
     }
-    HStore * out;
     out = hstorePairs( pairs, a.used, buflen );
     //adeven_count_free_array( &a );
     return out;
@@ -204,19 +198,47 @@ HStore * adeven_count_text_array( Datum* i_data, int n, bool * nulls )
 HStore * adeven_count_int_array( Datum* i_data, int n, bool * nulls )
 {
     int i, j, biggest = 0;
+    int * a;
+    int * b;
+    int * c;
     int exp = 1;
-    int * a = palloc0( sizeof( int ) * n );
-    int * b = palloc0( sizeof( int ) * n );
-    int * c = palloc0( sizeof( int ) * n );
+    int m = 0;
+    int notNullCnt = 0;
+    int notNullIter = 0;
+    Pairs * pairs;
+    HStore * out;
+    int4 buflen = 0;
 
-    for( i = 0 ; i < n; ++i )
+    for( i = 0; i < n; ++i )
     {
-        a[i] = DatumGetInt32( i_data[i] );
-        if( a[i] > biggest )
+        if( !nulls[i] )
         {
-            biggest = a[i];
+            ++notNullCnt;
         }
     }
+
+    notNullIter = notNullCnt;
+
+    a = palloc0( sizeof( int ) * notNullCnt );
+    b = palloc0( sizeof( int ) * notNullCnt );
+    c = palloc0( sizeof( int ) * notNullCnt );
+
+    for( i = 0; i < n; ++i )
+    {
+        if( !nulls[i] )
+        {
+            a[--notNullIter] = DatumGetInt32( i_data[i] );
+            if ( a[notNullIter] < 0 ) {
+                elog( ERROR, "negative integers are not supported" );
+            }
+            if( a[notNullIter] > biggest )
+            {
+                biggest = a[notNullIter];
+            }
+        }
+    }
+
+    n = notNullCnt;
 
     while( biggest / exp > 0 )
     {
@@ -239,8 +261,6 @@ HStore * adeven_count_int_array( Datum* i_data, int n, bool * nulls )
         }
         exp *= 10;
     }
-
-    int m = 0;
 
     for( i = 0; i < n; ++i )
     {
@@ -273,15 +293,14 @@ HStore * adeven_count_int_array( Datum* i_data, int n, bool * nulls )
         ++n;
     }
 
-    Pairs * pairs = palloc0( n * sizeof( Pairs ) );
-    int4 buflen = 0;
+    pairs = palloc0( n * sizeof( Pairs ) );
 
     for( i = 0; i < n; ++i )
     {
         int digit_key_num = adeven_count_get_digit_num( b[i] );
         int digit_val_num = adeven_count_get_digit_num( c[i] );
-        char * dig_key_str = palloc0(digit_key_num);
-        char * dig_val_str = palloc0(digit_val_num);
+        char * dig_key_str = palloc0( digit_key_num );
+        char * dig_val_str = palloc0( digit_val_num );
         sprintf( dig_key_str, "%d", b[i] );
         sprintf( dig_val_str, "%d", c[i] );
         pairs[i].key = dig_key_str;
@@ -293,7 +312,6 @@ HStore * adeven_count_int_array( Datum* i_data, int n, bool * nulls )
         buflen += pairs[i].keylen;
         buflen += pairs[i].vallen;
     }
-    HStore * out;
     out = hstorePairs( pairs, n, buflen );
     pfree( a );
     pfree( b );
@@ -301,37 +319,37 @@ HStore * adeven_count_int_array( Datum* i_data, int n, bool * nulls )
     return out;
 }
 
-PG_FUNCTION_INFO_V1( array_count );
 
 Datum array_count( PG_FUNCTION_ARGS )
 {
+    bool * nulls;
+    int n;
+    int16 i_typlen;
+    bool  i_typbyval;
+    char  i_typalign;
 
+    ArrayType * input;
+    Datum * i_data;
+
+    Oid i_eltype;
     if( PG_ARGISNULL( 0 ) )
     {
         PG_RETURN_NULL();
     }
 
-    ArrayType * input;
     input = PG_GETARG_ARRAYTYPE_P( 0 );
 
-    Datum * i_data;
 
-    Oid i_eltype;
     i_eltype = ARR_ELEMTYPE( input );
 
-    int16 i_typlen;
-    bool  i_typbyval;
-    char  i_typalign;
 
     get_typlenbyvalalign(
             i_eltype,
             &i_typlen,
             &i_typbyval,
             &i_typalign
-    );
+            );
 
-    bool * nulls;
-    int n;
 
     deconstruct_array(
             input,
@@ -342,7 +360,7 @@ Datum array_count( PG_FUNCTION_ARGS )
             &i_data,
             &nulls,
             &n
-    );
+            );
 
     switch( i_eltype )
     {
@@ -356,5 +374,6 @@ Datum array_count( PG_FUNCTION_ARGS )
             elog( ERROR, "INVALID input data type" );
             break;
     }
+    PG_RETURN_NULL();
 }
 
