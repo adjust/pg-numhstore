@@ -192,7 +192,9 @@ HStore * adeven_count_int_array( Datum* i_data, int n, bool * nulls )
     HStore * out;
     int4 buflen = 0;
 
-    a = palloc0( sizeof( int ) * n );
+    a = palloc( sizeof( int ) * (n+1) );
+    for( i=0;i<n+1;++i)
+        a[i] = -1;
     b = palloc0( sizeof( int ) * n );
     c = palloc0( sizeof( int ) * n );
 
