@@ -40,37 +40,11 @@ SELECT hstore_sub('a=>2,b=>3'::hstore,'b=>1,c=>2'::inthstore);
  "a"=>"2", "b"=>"2", "c"=>"-2"
 (1 row)
 
-SELECT array_uniq(ARRAY[5,4,13,4,5,2]);
- array_uniq 
-------------
- {2,4,5,13}
+SELECT array_count(ARRAY[NULL,5,NULL,5,10,NULL,5]);
+     array_count     
+---------------------
+ "5"=>"3", "10"=>"1"
 (1 row)
 
-SELECT tracker_id, install_date, device_id, 
-array_count( array_agg( CASE WHEN Date(created_at) - install_date  <= 30 THEN Date(created_at) - install_date ELSE NULL END ) ) as daily_session_cohort
-FROM 
-(
-  SELECT 1, i, generate_series(('2012-01-01'::date +i)::timestamp,('2012-01-01'::date +i+100)::timestamp - '1 hour'::interval, '1 hour'), '2012-01-01'::date
-	FROM  generate_series(1,100) i)sessions(tracker_id,device_id, created_at, install_date
-)
-WHERE device_id=30
-GROUP BY tracker_id, install_date, device_id
- tracker_id | install_date | device_id | daily_session_cohort 
-------------+--------------+-----------+----------------------
-          1 | 01-01-2012   |        30 | "30"=>"24"
-(1 row)
-
-SELECT tracker_id, install_date, device_id, 
-array_count( array_agg( CASE WHEN Date(created_at) - install_date  <= 30 THEN Date(created_at) - install_date ELSE NULL END )::text[] ) as daily_session_cohort
-FROM 
-(
-  SELECT 1, i, generate_series(('2012-01-01'::date +i)::timestamp,('2012-01-01'::date +i+100)::timestamp - '1 hour'::interval, '1 hour'), '2012-01-01'::date
-	FROM  generate_series(1,100) i)sessions(tracker_id,device_id, created_at, install_date
-)
-WHERE device_id=30
-GROUP BY tracker_id, install_date, device_id;
- tracker_id | install_date | device_id | daily_session_cohort 
-------------+--------------+-----------+----------------------
-          1 | 01-01-2012   |        30 | "30"=>"24"
-(1 row)
-
+SELECT array_count(ARRAY[-5,3,5]);
+ERROR:  negative integers are not supported
