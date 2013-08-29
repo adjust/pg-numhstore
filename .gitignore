@@ -13,3 +13,5 @@
 
 sql/*--*.sql
 results
+regression.diffs
+regression.out
