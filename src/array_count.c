@@ -204,37 +204,27 @@ HStore * adeven_count_int_array( Datum* i_data, int n, bool * nulls )
     int exp = 1;
     int m = 0;
     int notNullCnt = 0;
-    int notNullIter = 0;
     Pairs * pairs;
     HStore * out;
     int4 buflen = 0;
 
-    for( i = 0; i < n; ++i )
-    {
-        if( !nulls[i] )
-        {
-            ++notNullCnt;
-        }
-    }
-
-    notNullIter = notNullCnt;
-
-    a = palloc0( sizeof( int ) * notNullCnt );
-    b = palloc0( sizeof( int ) * notNullCnt );
-    c = palloc0( sizeof( int ) * notNullCnt );
+    a = palloc0( sizeof( int ) * n );
+    b = palloc0( sizeof( int ) * n );
+    c = palloc0( sizeof( int ) * n );
 
     for( i = 0; i < n; ++i )
     {
         if( !nulls[i] )
         {
-            a[--notNullIter] = DatumGetInt32( i_data[i] );
-            if ( a[notNullIter] < 0 ) {
+            a[notNullCnt] = DatumGetInt32( i_data[i] );
+            if ( a[notNullCnt] < 0 ) {
                 elog( ERROR, "negative integers are not supported" );
             }
-            if( a[notNullIter] > biggest )
+            if( a[notNullCnt] > biggest )
             {
-                biggest = a[notNullIter];
+                biggest = a[notNullCnt];
             }
+            ++notNullCnt;
         }
     }
 
