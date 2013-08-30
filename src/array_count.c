@@ -56,22 +56,6 @@ void adeven_count_insert_array( adeven_count_Array *a, char* elem, size_t elem_s
     a->array[a->used++] = elem;
 }
 
-void adeven_count_free_array( adeven_count_Array *a )
-{
-    int i;
-    for( i = 0; i < a->used; ++i )
-    {
-        pfree( a->array[i] );
-        pfree( a->counts_str[i] );
-    }
-    pfree( a->array );
-    pfree( a->counts_str );
-    pfree( a->counts );
-    pfree( a->sizes );
-    a->array = NULL;
-    a->used = a->size = 0;
-}
-
 size_t hstoreCheckKeyLen( size_t len )
 {
     if( len > HSTORE_MAX_KEY_LEN )
@@ -197,44 +181,57 @@ HStore * adeven_count_text_array( Datum* i_data, int n, bool * nulls )
 }
 HStore * adeven_count_int_array( Datum* i_data, int n, bool * nulls )
 {
-    int i, j, biggest = 0;
-    int * a;
-    int * b;
-    int * c;
+    int i = 0, j = 0, biggest = 0;
+    int * a = NULL;
+    int * b = NULL;
+    int * c = NULL;
     int exp = 1;
     int m = 0;
     int notNullCnt = 0;
-    int notNullIter = 0;
-    Pairs * pairs;
-    HStore * out;
+    Pairs * pairs = NULL;
+    HStore * out = NULL;
     int4 buflen = 0;
 
-    for( i = 0; i < n; ++i )
-    {
-        if( !nulls[i] )
-        {
-            ++notNullCnt;
-        }
+    if( n == 1 ) {
+        pairs = palloc0( sizeof( Pairs ) );
+        int value = DatumGetInt32( i_data[0] );
+        int digit_key_num = adeven_count_get_digit_num( value );
+        char * dig_key_str = palloc0( digit_key_num );
+        char * dig_val_str = palloc0( 1 );
+        sprintf( dig_key_str, "%d", value );
+        sprintf( dig_val_str, "%d", 1 );
+        pairs[0].key = dig_key_str;
+        pairs[0].keylen =  digit_key_num;
+        pairs[0].val = dig_val_str;
+        pairs[0].vallen =  1;
+        pairs[0].isnull = false;
+        pairs[0].needfree = false;
+        buflen += pairs[0].keylen;
+        buflen += pairs[0].vallen;
+        out = hstorePairs( pairs, n, buflen );
+        return out;
     }
 
-    notNullIter = notNullCnt;
 
-    a = palloc0( sizeof( int ) * notNullCnt );
-    b = palloc0( sizeof( int ) * notNullCnt );
-    c = palloc0( sizeof( int ) * notNullCnt );
+    a = palloc( sizeof( int ) * ( n + 1 ) );
+    for( i=0;i<n+1;++i)
+        a[i] = -1;
+    b = palloc0( sizeof( int ) * n );
+    c = palloc0( sizeof( int ) * n );
 
     for( i = 0; i < n; ++i )
     {
         if( !nulls[i] )
         {
-            a[--notNullIter] = DatumGetInt32( i_data[i] );
-            if ( a[notNullIter] < 0 ) {
+            a[notNullCnt] = DatumGetInt32( i_data[i] );
+            if ( a[notNullCnt] < 0 ) {
                 elog( ERROR, "negative integers are not supported" );
             }
-            if( a[notNullIter] > biggest )
+            if( a[notNullCnt] > biggest )
             {
-                biggest = a[notNullIter];
+                biggest = a[notNullCnt];
             }
+            ++notNullCnt;
         }
     }
 
@@ -287,15 +284,9 @@ HStore * adeven_count_int_array( Datum* i_data, int n, bool * nulls )
         i=j;
     }
 
-    n = 0;
-    while( c[n] != 0 )
-    {
-        ++n;
-    }
+    pairs = palloc0( m * sizeof( Pairs ) );
 
-    pairs = palloc0( n * sizeof( Pairs ) );
-
-    for( i = 0; i < n; ++i )
+    for( i = 0; i < m; ++i )
     {
         int digit_key_num = adeven_count_get_digit_num( b[i] );
         int digit_val_num = adeven_count_get_digit_num( c[i] );
@@ -312,10 +303,7 @@ HStore * adeven_count_int_array( Datum* i_data, int n, bool * nulls )
         buflen += pairs[i].keylen;
         buflen += pairs[i].vallen;
     }
-    out = hstorePairs( pairs, n, buflen );
-    pfree( a );
-    pfree( b );
-    pfree( c );
+    out = hstorePairs( pairs, m, buflen );
     return out;
 }
 
@@ -361,6 +349,9 @@ Datum array_count( PG_FUNCTION_ARGS )
             &nulls,
             &n
             );
+
+    if( n == 0 || ( n == 1 && nulls[0] ) )
+        PG_RETURN_NULL();
 
     switch( i_eltype )
     {
