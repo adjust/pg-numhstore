@@ -87,18 +87,18 @@ CREATE CAST (inthstore AS floathstore) WITHOUT FUNCTION AS IMPLICIT;
 
 CREATE FUNCTION array_count(integer[])
 RETURNS inthstore AS
-'$libdir/array_count.so', 'array_count' LANGUAGE C IMMUTABLE STRICT;
+'$libdir/pg_numhstore.so', 'array_count' LANGUAGE C IMMUTABLE STRICT;
 
 CREATE FUNCTION array_count(text[])
 RETURNS inthstore AS
-'$libdir/array_count.so', 'array_count' LANGUAGE C IMMUTABLE STRICT;
+'$libdir/pg_numhstore.so', 'array_count' LANGUAGE C IMMUTABLE STRICT;
 
 -- adds two hstores values by converting them to integers
 -- Select hstore_add('a=>1,b=>2'::hstore,'b=>1,c=>2'::inthstore)
 -- => {'a'=>'1','b'=>'3','c'=>'2'}
 CREATE FUNCTION hstore_add(a inthstore, b inthstore)
 RETURNS inthstore AS
-'$libdir/hstore_add.so', 'hstore_add' LANGUAGE C IMMUTABLE;
+'$libdir/pg_numhstore.so', 'hstore_add' LANGUAGE C IMMUTABLE;
 
 CREATE FUNCTION hstore_add(a floathstore, b floathstore) RETURNS floathstore AS $$
 BEGIN
@@ -107,7 +107,7 @@ hstore(
   array_agg(key),
   array_agg((COALESCE(r.value::numeric,0) + COALESCE(l.value::numeric,0))::text)
 )
-FROM each(a) l      
+FROM each(a) l
 FULL OUTER JOIN each(b) r
 USING (key);
 END;
@@ -120,7 +120,7 @@ hstore(
   array_agg(key),
   array_agg((COALESCE(l.value::numeric,0) - COALESCE(r.value::numeric,0))::text)
 )
-FROM each(a) l      
+FROM each(a) l
 FULL OUTER JOIN each(b) r
 USING (key);
 END;
@@ -133,7 +133,7 @@ hstore(
   array_agg(key),
   array_agg((COALESCE(l.value::bigint,0) - COALESCE(r.value::bigint,0))::text)
 )
-FROM each(a) l      
+FROM each(a) l
 FULL OUTER JOIN each(b) r
 USING (key);
 END;
@@ -286,7 +286,7 @@ CREATE FUNCTION hstore_length(store hstore) RETURNS integer AS $$
   BEGIN
     RETURN
       array_length(akeys(store),1);
-  END         
+  END
 $$ LANGUAGE 'plpgsql' IMMUTABLE STRICT;
 
 CREATE FUNCTION hstore_gt(a hstore, b integer) RETURNS boolean AS $$
