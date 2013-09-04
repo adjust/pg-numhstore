@@ -126,9 +126,9 @@ Datum array_add( PG_FUNCTION_ARGS )
         if( result[i].key == NULL )
             break;
         char * value_str;
-        int val_len;
+        size_t val_len;
         val_len = adeven_add_get_digit_num( result[i].value );
-        value_str = (char * ) palloc0 ( result[i].key_len );
+        value_str = (char * ) palloc0 ( val_len );
         sprintf( value_str, "%ld", result[i].value );
         hPairs[i].key = result[i].key;
         hPairs[i].keylen = result[i].key_len;

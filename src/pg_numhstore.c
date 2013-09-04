@@ -40,7 +40,7 @@ HStore * hstoreUpgrade( Datum orig )
     return hs;
 }
 
-int adeven_add_get_digit_num( long number )
+size_t adeven_add_get_digit_num( long number )
 {
     size_t count = 0;
     if( number == 0 )
