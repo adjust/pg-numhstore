@@ -93,14 +93,16 @@ Datum array_add( PG_FUNCTION_ARGS )
     for( i = 0; i < key_count; ++i )
     {
         if( key_nulls[i] )
+        {
             continue;
-        ++real_count;
+        }
         size_t key_len = VARSIZE( key_data[i] ) - VARHDRSZ;
         char * current_key = ( char * ) palloc0( key_len );
         memcpy( current_key, VARDATA( key_data[i] ), key_len );
-        pairs[i].key = current_key;
-        pairs[i].key_len = key_len;
-        pairs[i].value = DatumGetInt32( val_data[i] );
+        pairs[real_count].key = current_key;
+        pairs[real_count].key_len = key_len;
+        pairs[real_count].value = DatumGetInt32( val_data[i] );
+        ++real_count;
     }
 
     shrink_pairs( pairs, real_count, &key_count );
