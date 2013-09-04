@@ -1,14 +1,4 @@
-#include "postgres.h"
-#include "hstore.h"
-#include "avltree.h"
-#include "fmgr.h"
-#include <string.h>
-#include <utils/array.h>
-#include <catalog/pg_type.h>
-
-#ifdef PG_MODULE_MAGIC
-PG_MODULE_MAGIC;
-#endif
+#include "pg_numhstore.h"
 
 typedef struct {
     char ** array;
