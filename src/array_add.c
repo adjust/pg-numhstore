@@ -7,10 +7,20 @@ int key_value_compare( const void * a, const void * b )
     return strcmp( key1->key , key2->key );
 }
 
+void shrink_pairs(KeyValuePair * pairs, int new_size, int * old_size )
+{
+    KeyValuePair * swap;
+    swap = ( KeyValuePair * ) palloc( new_size * sizeof( KeyValuePair ) );
+    memcpy(swap, pairs, new_size * sizeof( KeyValuePair ) );
+    pfree( pairs );
+    pairs = swap;
+    *old_size = new_size;
+}
+
 Datum array_add( PG_FUNCTION_ARGS )
 {
     KeyValuePair * pairs, * result;
-    int i = 0, j = 0;
+    int i = 0, j = 0, real_count = 0;
     bool * key_nulls, * val_nulls;
     int key_count, val_count;
     int16 key_typlen, val_typlen;
@@ -82,6 +92,9 @@ Datum array_add( PG_FUNCTION_ARGS )
 
     for( i = 0; i < key_count; ++i )
     {
+        if( key_nulls[i] )
+            continue;
+        ++real_count;
         size_t key_len = VARSIZE( key_data[i] ) - VARHDRSZ;
         char * current_key = ( char * ) palloc0( key_len );
         memcpy( current_key, VARDATA( key_data[i] ), key_len );
@@ -90,32 +103,41 @@ Datum array_add( PG_FUNCTION_ARGS )
         pairs[i].value = DatumGetInt32( val_data[i] );
     }
 
+    shrink_pairs( pairs, real_count, &key_count );
     qsort( pairs, key_count, sizeof( KeyValuePair ), key_value_compare );
 
     for( i = 0; i < key_count; ++i )
     {
-        char * value_str;
-        int val_len;
-        char * current_key = pairs[i].key;
-        int current_value = pairs[i].value;
-        int current_key_len = pairs[i].key_len;
-        while(i < key_len -1 &&  strcmp(pairs[i].key, pairs[i+1].key ) == 0 )
+        result[j].key     = pairs[i].key;
+        result[j].value   = pairs[i].value;
+        result[j].key_len = pairs[i].key_len;
+
+        while(i < key_count -1 && pairs[i].key_len == pairs[i+1].key_len && strncmp(pairs[i].key, pairs[i+1].key, pairs[i].key_len ) == 0 )
         {
-            current_value += pairs[++i].value;
+                result[j].value += pairs[++i].value;
         }
-        val_len = adeven_add_get_digit_num( current_value );
-        value_str = (char * ) palloc0 ( val_len );
-        sprintf( value_str, "%ld", current_value );
-        hPairs[j].key = current_key;
-        hPairs[j].keylen = current_key_len;
-        hPairs[j].val = value_str;
-        hPairs[j].vallen = val_len;
-        hPairs[j].isnull = false;
-        hPairs[j].needfree = false;
-        buflen += hPairs[j].keylen;
-        buflen += hPairs[j++].vallen;
+        ++j;
     }
 
-    out = hstorePairs( hPairs, j, buflen );
+    for( i = 0; i < j; i++ )
+    {
+        if( result[i].key == NULL )
+            break;
+        char * value_str;
+        int val_len;
+        val_len = adeven_add_get_digit_num( result[i].value );
+        value_str = (char * ) palloc0 ( result[i].key_len );
+        sprintf( value_str, "%ld", result[i].value );
+        hPairs[i].key = result[i].key;
+        hPairs[i].keylen = result[i].key_len;
+        hPairs[i].val = value_str;
+        hPairs[i].vallen = val_len;
+        hPairs[i].isnull = false;
+        hPairs[i].needfree = false;
+        buflen += hPairs[i].keylen;
+        buflen += hPairs[i].vallen;
+    }
+
+    out = hstorePairs( hPairs, i, buflen );
     PG_RETURN_POINTER( out );
 }
