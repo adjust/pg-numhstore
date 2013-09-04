@@ -99,11 +99,9 @@ Datum array_add( PG_FUNCTION_ARGS )
         char * current_key = pairs[i].key;
         int current_value = pairs[i].value;
         int current_key_len = pairs[i].key_len;
-        while( strcmp(pairs[i].key, pairs[i+1].key ) == 0 )
+        while(i < key_len -1 &&  strcmp(pairs[i].key, pairs[i+1].key ) == 0 )
         {
             current_value += pairs[++i].value;
-            if( i == key_count - 1 )
-                break;
         }
         val_len = adeven_add_get_digit_num( current_value );
         value_str = (char * ) palloc0 ( val_len );
