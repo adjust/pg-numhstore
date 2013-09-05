@@ -1,61 +1,5 @@
 #include "array_count.h"
 
-void adeven_count_init_array( adeven_count_Array *a, size_t initial_size )
-{
-    int i = 0;
-    a->array      = ( char ** )palloc0( initial_size * sizeof( char* ) );
-    a->counts_str = ( char ** )palloc0( initial_size * sizeof( char* ) );
-    a->used       = 0;
-    a->size       = initial_size;
-    a->counts     = ( int * )palloc0( initial_size * sizeof( int ) );
-    a->sizes      = ( int * )palloc0( initial_size * sizeof( int ) );
-    for( i = 0; i < a->size; ++i )
-    {
-        a->counts[i] = 0;
-    }
-}
-
-void adeven_count_insert_array( adeven_count_Array *a, char* elem, size_t elem_size )
-{
-    if( a->used == a->size )
-    {
-        char ** array_swap;
-        char ** counts_str_swap;
-        int * sizes_swap;
-        int * count_swap;
-        int i = a->size;
-        a->size *= 2;
-
-        array_swap = a->array;
-        a->array = ( char ** )palloc0( a->size * sizeof( char* ) );
-        memcpy( a->array, array_swap, sizeof( char* ) * i );
-        pfree( array_swap );
-
-        counts_str_swap = a->counts_str;
-        a->counts_str = ( char ** )palloc0( a->size * sizeof( char* ) );
-        memcpy( a->counts_str, counts_str_swap, sizeof( char* ) * i );
-        pfree( counts_str_swap );
-
-        count_swap = a->counts;
-        a->counts = ( int * )palloc0( a->size * sizeof( int ) );
-        memcpy( a->counts, count_swap, sizeof( int ) * i );
-        pfree( count_swap );
-
-        sizes_swap = a->sizes;
-        a->sizes = ( int * )palloc0( a->size * sizeof( int ) );
-        memcpy( a->sizes, sizes_swap, sizeof( int ) * i );
-        pfree( sizes_swap );
-
-        for( ; i < a->size; ++i )
-        {
-            a->counts[i] = 0;
-            a->sizes[i]  = 0;
-        }
-    }
-    a->sizes[a->used] = ( int ) elem_size;
-    a->array[a->used++] = elem;
-}
-
 size_t hstoreCheckKeyLen( size_t len )
 {
     if( len > HSTORE_MAX_KEY_LEN )
@@ -88,8 +32,8 @@ HStore * adeven_count_text_array( Datum* i_data, int n, bool * nulls )
     int4 buflen = 0;
 
     HStore * out;
-    adeven_count_Array a;
-    adeven_count_init_array( &a, 100 );
+    AEArray a;
+    AEArray_init( &a, 100 );
     tree = make_empty( NULL );
 
     for( i = 0; i < n; ++i )
@@ -106,7 +50,7 @@ HStore * adeven_count_text_array( Datum* i_data, int n, bool * nulls )
             {
                 j = a.used;
                 tree = insert( current_datum, datum_len, j, tree );
-                adeven_count_insert_array( &a, current_datum, datum_len );
+                AEArray_insert( &a, current_datum, datum_len );
             }
             else
             {

@@ -4,6 +4,62 @@
 PG_MODULE_MAGIC;
 #endif
 
+void AEArray_init( AEArray *a, size_t initial_size )
+{
+    int i = 0;
+    a->array      = ( char ** )palloc0( initial_size * sizeof( char* ) );
+    a->counts_str = ( char ** )palloc0( initial_size * sizeof( char* ) );
+    a->used       = 0;
+    a->size       = initial_size;
+    a->counts     = ( int * )palloc0( initial_size * sizeof( int ) );
+    a->sizes      = ( int * )palloc0( initial_size * sizeof( int ) );
+    for( i = 0; i < a->size; ++i )
+    {
+        a->counts[i] = 0;
+    }
+}
+
+void AEArray_insert( AEArray *a, char* elem, size_t elem_size )
+{
+    if( a->used == a->size )
+    {
+        char ** array_swap;
+        char ** counts_str_swap;
+        int * sizes_swap;
+        int * count_swap;
+        int i = a->size;
+        a->size *= 2;
+
+        array_swap = a->array;
+        a->array = ( char ** )palloc0( a->size * sizeof( char* ) );
+        memcpy( a->array, array_swap, sizeof( char* ) * i );
+        pfree( array_swap );
+
+        counts_str_swap = a->counts_str;
+        a->counts_str = ( char ** )palloc0( a->size * sizeof( char* ) );
+        memcpy( a->counts_str, counts_str_swap, sizeof( char* ) * i );
+        pfree( counts_str_swap );
+
+        count_swap = a->counts;
+        a->counts = ( int * )palloc0( a->size * sizeof( int ) );
+        memcpy( a->counts, count_swap, sizeof( int ) * i );
+        pfree( count_swap );
+
+        sizes_swap = a->sizes;
+        a->sizes = ( int * )palloc0( a->size * sizeof( int ) );
+        memcpy( a->sizes, sizes_swap, sizeof( int ) * i );
+        pfree( sizes_swap );
+
+        for( ; i < a->size; ++i )
+        {
+            a->counts[i] = 0;
+            a->sizes[i]  = 0;
+        }
+    }
+    a->sizes[a->used] = ( int ) elem_size;
+    a->array[a->used++] = elem;
+}
+
 HStore * hstorePairs( Pairs *pairs, int4 pcount, int4 buflen )
 {
     HStore     *out;
