@@ -212,7 +212,7 @@ Datum hstore_add( PG_FUNCTION_ARGS )
     for( i = 0; i < a.used; ++i )
     {
         size_t datum_len = a.sizes[i];
-        int digit_num = adeven_add_get_digit_num( a.vals[i] );
+        int digit_num = adeven_get_digit_num( a.vals[i] );
         char * dig_str = palloc0( digit_num );
         sprintf( dig_str, "%ld", a.vals[i] );
         a.vstr[i] = dig_str;
