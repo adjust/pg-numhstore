@@ -9,10 +9,12 @@ int key_value_compare( const void * a, const void * b )
 
 void shrink_pairs(KeyValuePair * pairs, int new_size, int * old_size )
 {
+    if( new_size == * old_size )
+        /* no need to shrink */
+        return;
     KeyValuePair * swap;
     swap = ( KeyValuePair * ) palloc( new_size * sizeof( KeyValuePair ) );
     memcpy(swap, pairs, new_size * sizeof( KeyValuePair ) );
-    pfree( pairs );
     pairs = swap;
     *old_size = new_size;
 }
