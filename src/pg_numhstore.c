@@ -42,7 +42,7 @@ void AEArray_insert( AEArray *a, char* elem, size_t elem_size )
 
         count_swap = a->counts;
         a->counts = ( long * )palloc0( a->size * sizeof( long ) );
-        memcpy( a->counts, count_swap, sizeof( int ) * i );
+        memcpy( a->counts, count_swap, sizeof( long ) * i );
         pfree( count_swap );
 
         sizes_swap = a->sizes;
