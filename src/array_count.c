@@ -9,19 +9,6 @@ size_t hstoreCheckKeyLen( size_t len )
     return len;
 }
 
-int adeven_count_get_digit_num( int number )
-{
-    size_t count = 0;
-    if( number == 0 )
-        return 1;
-    while( number != 0 )
-    {
-        number /= 10;
-        ++count;
-    }
-    return count;
-}
-
 HStore * adeven_count_text_array( Datum* i_data, int n, bool * nulls )
 {
     int i, j;
@@ -75,9 +62,9 @@ HStore * adeven_count_text_array( Datum* i_data, int n, bool * nulls )
         if( a.array[j] != NULL )
         {
             size_t datum_len = a.sizes[j];
-            int digit_num = adeven_count_get_digit_num( a.counts[j] );
+            int digit_num = adeven_get_digit_num( a.counts[j] );
             char * dig_str = palloc0( digit_num );
-            sprintf( dig_str, "%d", a.counts[j] );
+            sprintf( dig_str, "%ld", a.counts[j] );
             a.counts_str[j] = dig_str;
             pairs[i].key = a.array[j];
             pairs[i].keylen =  datum_len;
@@ -109,7 +96,7 @@ HStore * adeven_count_int_array( Datum* i_data, int n, bool * nulls )
     if( n == 1 ) {
         pairs = palloc0( sizeof( Pairs ) );
         int value = DatumGetInt32( i_data[0] );
-        int digit_key_num = adeven_count_get_digit_num( value );
+        int digit_key_num = adeven_get_digit_num( value );
         char * dig_key_str = palloc0( digit_key_num );
         char * dig_val_str = palloc0( 1 );
         sprintf( dig_key_str, "%d", value );
@@ -202,8 +189,8 @@ HStore * adeven_count_int_array( Datum* i_data, int n, bool * nulls )
 
     for( i = 0; i < m; ++i )
     {
-        int digit_key_num = adeven_count_get_digit_num( b[i] );
-        int digit_val_num = adeven_count_get_digit_num( c[i] );
+        int digit_key_num = adeven_get_digit_num( b[i] );
+        int digit_val_num = adeven_get_digit_num( c[i] );
         char * dig_key_str = palloc0( digit_key_num );
         char * dig_val_str = palloc0( digit_val_num );
         sprintf( dig_key_str, "%d", b[i] );

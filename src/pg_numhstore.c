@@ -11,7 +11,7 @@ void AEArray_init( AEArray *a, size_t initial_size )
     a->counts_str = ( char ** )palloc0( initial_size * sizeof( char* ) );
     a->used       = 0;
     a->size       = initial_size;
-    a->counts     = ( int * )palloc0( initial_size * sizeof( int ) );
+    a->counts     = ( long * )palloc0( initial_size * sizeof( long ) );
     a->sizes      = ( int * )palloc0( initial_size * sizeof( int ) );
     for( i = 0; i < a->size; ++i )
     {
@@ -26,7 +26,7 @@ void AEArray_insert( AEArray *a, char* elem, size_t elem_size )
         char ** array_swap;
         char ** counts_str_swap;
         int * sizes_swap;
-        int * count_swap;
+        long * count_swap;
         int i = a->size;
         a->size *= 2;
 
@@ -41,7 +41,7 @@ void AEArray_insert( AEArray *a, char* elem, size_t elem_size )
         pfree( counts_str_swap );
 
         count_swap = a->counts;
-        a->counts = ( int * )palloc0( a->size * sizeof( int ) );
+        a->counts = ( long * )palloc0( a->size * sizeof( long ) );
         memcpy( a->counts, count_swap, sizeof( int ) * i );
         pfree( count_swap );
 
@@ -96,7 +96,7 @@ HStore * hstoreUpgrade( Datum orig )
     return hs;
 }
 
-size_t adeven_add_get_digit_num( long number )
+size_t adeven_get_digit_num( long number )
 {
     size_t count = 0;
     if( number == 0 )

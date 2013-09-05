@@ -21,8 +21,8 @@ void shrink_pairs(KeyValuePair * pairs, int new_size, int * old_size )
 
 Datum array_add( PG_FUNCTION_ARGS )
 {
-    KeyValuePair * pairs, * result;
-    int i = 0, j = 0, real_count = 0;
+    KeyValuePair * result;
+    int i = 0, j = 0;
     bool * key_nulls, * val_nulls;
     int key_count, val_count;
     int16 key_typlen, val_typlen;
@@ -32,6 +32,11 @@ Datum array_add( PG_FUNCTION_ARGS )
     Pairs * hPairs;
     HStore * out;
     int4 buflen = 0;
+    AvlTree tree;
+    AEArray array;
+
+    tree = make_empty( NULL );
+    AEArray_init( &array, 100 );
 
     ArrayType * input_keys, * input_vals;
     Datum * key_data, * val_data;
@@ -88,54 +93,55 @@ Datum array_add( PG_FUNCTION_ARGS )
     if( key_count != val_count )
         elog( ERROR, "key and value error have different lenghts" );
 
-    pairs = ( KeyValuePair * ) palloc0( key_count * sizeof( KeyValuePair ) );
     result = ( KeyValuePair * ) palloc0( key_count * sizeof( KeyValuePair ) );
     hPairs = ( Pairs * ) palloc0( key_count * sizeof( Pairs ) );
 
     for( i = 0; i < key_count; ++i )
     {
-        if( key_nulls[i] )
-        {
-            continue;
-        }
+        if( key_nulls[i] ) continue;
+
+        Position position;
         size_t key_len = VARSIZE( key_data[i] ) - VARHDRSZ;
         char * current_key = ( char * ) palloc0( key_len );
         memcpy( current_key, VARDATA( key_data[i] ), key_len );
-        pairs[real_count].key = current_key;
-        pairs[real_count].key_len = key_len;
-        pairs[real_count].value = DatumGetInt32( val_data[i] );
-        ++real_count;
-    }
+        long current_value = DatumGetInt32( val_data[i] );
 
-    shrink_pairs( pairs, real_count, &key_count );
-    qsort( pairs, key_count, sizeof( KeyValuePair ), key_value_compare );
-
-    for( i = 0; i < key_count; ++i )
-    {
-        result[j].key     = pairs[i].key;
-        result[j].value   = pairs[i].value;
-        result[j].key_len = pairs[i].key_len;
-
-        while(i < key_count -1 && pairs[i].key_len == pairs[i+1].key_len && strncmp(pairs[i].key, pairs[i+1].key, pairs[i].key_len ) == 0 )
+        position = find( current_key, key_len, tree );
+        if( position == NULL )
         {
-                result[j].value += pairs[++i].value;
+            j = array.used;
+            tree = insert( current_key, key_len, j, tree );
+            AEArray_insert( &array, current_key, key_len );
         }
-        ++j;
+        else
+        {
+            j = value( position );
+        }
+
+        array.counts[j] += current_value;
     }
 
-    for( i = 0; i < j; i++ )
+    // save sort permutation to create pairs in order of ascending keys
+    // we assume that postgres stores the pairs in that order
+    int * perm;
+    perm = ( int * ) palloc ( array.used * sizeof( int ) );
+    sort_perm( tree, perm );
+
+    make_empty( tree );
+
+    hPairs = palloc0( array.used * sizeof( Pairs ) );
+    for( i = 0; i < array.used; i++ )
     {
-        if( result[i].key == NULL )
-            break;
-        char * value_str;
-        size_t val_len;
-        val_len = adeven_add_get_digit_num( result[i].value );
-        value_str = (char * ) palloc0 ( val_len );
-        sprintf( value_str, "%ld", result[i].value );
-        hPairs[i].key = result[i].key;
-        hPairs[i].keylen = result[i].key_len;
-        hPairs[i].val = value_str;
-        hPairs[i].vallen = val_len;
+        j = perm[i];
+        if( array.array[j] == NULL ) break;
+
+        int digit_num = adeven_get_digit_num( array.counts[j] );
+        char * dig_str = (char * ) palloc0 ( digit_num );
+        sprintf( dig_str, "%ld", array.counts[j] );
+        hPairs[i].key = array.array[j];
+        hPairs[i].keylen = array.sizes[j];
+        hPairs[i].val = dig_str;
+        hPairs[i].vallen = digit_num;
         hPairs[i].isnull = false;
         hPairs[i].needfree = false;
         buflen += hPairs[i].keylen;
