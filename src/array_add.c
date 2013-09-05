@@ -102,8 +102,9 @@ Datum array_add( PG_FUNCTION_ARGS )
 
         Position position;
         size_t key_len = VARSIZE( key_data[i] ) - VARHDRSZ;
-        char * current_key = ( char * ) palloc0( key_len );
+        char * current_key = ( char * ) palloc0( key_len +1 );
         memcpy( current_key, VARDATA( key_data[i] ), key_len );
+        current_key[key_len] = '\0';
         long current_value = DatumGetInt32( val_data[i] );
 
         position = find( current_key, key_len, tree );
@@ -136,7 +137,8 @@ Datum array_add( PG_FUNCTION_ARGS )
         if( array.array[j] == NULL ) break;
 
         int digit_num = adeven_get_digit_num( array.counts[j] );
-        char * dig_str = (char * ) palloc0 ( digit_num );
+        char * dig_str = (char * ) palloc0 ( digit_num + 1 );
+        dig_str[digit_num] = '\0';
         sprintf( dig_str, "%ld", array.counts[j] );
         hPairs[i].key = array.array[j];
         hPairs[i].keylen = array.sizes[j];
