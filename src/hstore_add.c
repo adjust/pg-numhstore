@@ -1,35 +1,5 @@
 #include "hstore_add.h"
 
-HStore * hstorePairs( Pairs *pairs, int4 pcount, int4 buflen )
-{
-    HStore     *out;
-    HEntry     *entry;
-    char       *ptr;
-    char       *buf;
-    int4        len;
-    int4        i;
-
-    len = CALCDATASIZE( pcount, buflen );
-    out = palloc0( len );
-    SET_VARSIZE( out, len );
-    HS_SETCOUNT( out, pcount );
-
-    if ( pcount == 0 )
-        return out;
-
-    entry = ARRPTR( out );
-    buf = ptr = STRPTR( out );
-
-    for( i = 0; i < pcount; i++ )
-    {
-        HS_ADDITEM( entry, buf, ptr, pairs[i] );
-    }
-
-    HS_FINALIZE( out, pcount, buf, ptr );
-
-    return out;
-}
-
 void adeven_add_init_array( Array *a, size_t initial_size )
 {
     int i;
@@ -109,25 +79,6 @@ void adeven_add_free_array( Array *a )
     a->vals = NULL;
     a->found = NULL;
     a->used = a->size = 0;
-}
-
-HStore * hstoreUpgrade( Datum orig )
-{
-	HStore	   *hs = ( HStore * ) PG_DETOAST_DATUM( orig );
-    return hs;
-}
-
-int adeven_add_get_digit_num( long number )
-{
-    size_t count = 0;
-    if( number == 0 )
-        return 1;
-    while( number != 0 )
-    {
-        number /= 10;
-        ++count;
-    }
-    return count;
 }
 
 void adeven_add_read_pair( HEntry * entries, char * base, int index, char ** key, long * vali, size_t * keylen )

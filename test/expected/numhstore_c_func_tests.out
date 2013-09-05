@@ -48,3 +48,37 @@ SELECT array_count(ARRAY[NULL,5,NULL,5,10,NULL,5]);
 
 SELECT array_count(ARRAY[-5,3,5]);
 ERROR:  negative integers are not supported
+SELECT array_add(array_agg((num/30)::text), array_agg(val)) FROM generate_series(0,100) num, generate_series(0,1000,10) val;
+                           array_add                           
+---------------------------------------------------------------
+ "0"=>"1515000", "1"=>"1515000", "2"=>"1515000", "3"=>"555500"
+(1 row)
+
+SELECT SUM(hstore((num/30)::text, val::text)::inthstore) FROM generate_series(0,100) num, generate_series(0,1000,10) val;
+                              sum                              
+---------------------------------------------------------------
+ "0"=>"1515000", "1"=>"1515000", "2"=>"1515000", "3"=>"555500"
+(1 row)
+
+SELECT array_add(ARRAY['foo','bar'],ARRAY[1,2,3]);
+ERROR:  key and value error have different lenghts
+SELECT array_add(ARRAY['foo','bar','baz'],ARRAY[1,2]);
+ERROR:  key and value error have different lenghts
+SELECT array_add(ARRAY['foo','foo','bar','foo'],ARRAY[2,NULL,2,2]);
+       array_add        
+------------------------
+ "bar"=>"2", "foo"=>"4"
+(1 row)
+
+SELECT array_add(ARRAY['foo',NULL,'foo','bar'],ARRAY[2,2,2,2]);
+       array_add        
+------------------------
+ "bar"=>"2", "foo"=>"4"
+(1 row)
+
+SELECT array_add(ARRAY['foo','bar','foo'],ARRAY[2E9::integer,2E9::integer,2E9::integer]);
+                array_add                 
+------------------------------------------
+ "bar"=>"2000000000", "foo"=>"4000000000"
+(1 row)
+
