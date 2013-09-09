@@ -1,61 +1,5 @@
 #include "array_count.h"
 
-void adeven_count_init_array( adeven_count_Array *a, size_t initial_size )
-{
-    int i = 0;
-    a->array      = ( char ** )palloc0( initial_size * sizeof( char* ) );
-    a->counts_str = ( char ** )palloc0( initial_size * sizeof( char* ) );
-    a->used       = 0;
-    a->size       = initial_size;
-    a->counts     = ( int * )palloc0( initial_size * sizeof( int ) );
-    a->sizes      = ( int * )palloc0( initial_size * sizeof( int ) );
-    for( i = 0; i < a->size; ++i )
-    {
-        a->counts[i] = 0;
-    }
-}
-
-void adeven_count_insert_array( adeven_count_Array *a, char* elem, size_t elem_size )
-{
-    if( a->used == a->size )
-    {
-        char ** array_swap;
-        char ** counts_str_swap;
-        int * sizes_swap;
-        int * count_swap;
-        int i = a->size;
-        a->size *= 2;
-
-        array_swap = a->array;
-        a->array = ( char ** )palloc0( a->size * sizeof( char* ) );
-        memcpy( a->array, array_swap, sizeof( char* ) * i );
-        pfree( array_swap );
-
-        counts_str_swap = a->counts_str;
-        a->counts_str = ( char ** )palloc0( a->size * sizeof( char* ) );
-        memcpy( a->counts_str, counts_str_swap, sizeof( char* ) * i );
-        pfree( counts_str_swap );
-
-        count_swap = a->counts;
-        a->counts = ( int * )palloc0( a->size * sizeof( int ) );
-        memcpy( a->counts, count_swap, sizeof( int ) * i );
-        pfree( count_swap );
-
-        sizes_swap = a->sizes;
-        a->sizes = ( int * )palloc0( a->size * sizeof( int ) );
-        memcpy( a->sizes, sizes_swap, sizeof( int ) * i );
-        pfree( sizes_swap );
-
-        for( ; i < a->size; ++i )
-        {
-            a->counts[i] = 0;
-            a->sizes[i]  = 0;
-        }
-    }
-    a->sizes[a->used] = ( int ) elem_size;
-    a->array[a->used++] = elem;
-}
-
 size_t hstoreCheckKeyLen( size_t len )
 {
     if( len > HSTORE_MAX_KEY_LEN )
@@ -63,19 +7,6 @@ size_t hstoreCheckKeyLen( size_t len )
                 ( errcode( ERRCODE_STRING_DATA_RIGHT_TRUNCATION ),
                   errmsg( "string too long for hstore key" ) ) );
     return len;
-}
-
-int adeven_count_get_digit_num( int number )
-{
-    size_t count = 0;
-    if( number == 0 )
-        return 1;
-    while( number != 0 )
-    {
-        number /= 10;
-        ++count;
-    }
-    return count;
 }
 
 HStore * adeven_count_text_array( Datum* i_data, int n, bool * nulls )
@@ -88,8 +19,8 @@ HStore * adeven_count_text_array( Datum* i_data, int n, bool * nulls )
     int4 buflen = 0;
 
     HStore * out;
-    adeven_count_Array a;
-    adeven_count_init_array( &a, 100 );
+    AEArray a;
+    AEArray_init( &a, 100 );
     tree = make_empty( NULL );
 
     for( i = 0; i < n; ++i )
@@ -106,7 +37,7 @@ HStore * adeven_count_text_array( Datum* i_data, int n, bool * nulls )
             {
                 j = a.used;
                 tree = insert( current_datum, datum_len, j, tree );
-                adeven_count_insert_array( &a, current_datum, datum_len );
+                AEArray_insert( &a, current_datum, datum_len );
             }
             else
             {
@@ -131,9 +62,9 @@ HStore * adeven_count_text_array( Datum* i_data, int n, bool * nulls )
         if( a.array[j] != NULL )
         {
             size_t datum_len = a.sizes[j];
-            int digit_num = adeven_count_get_digit_num( a.counts[j] );
+            int digit_num = adeven_get_digit_num( a.counts[j] );
             char * dig_str = palloc0( digit_num );
-            sprintf( dig_str, "%d", a.counts[j] );
+            sprintf( dig_str, "%ld", a.counts[j] );
             a.counts_str[j] = dig_str;
             pairs[i].key = a.array[j];
             pairs[i].keylen =  datum_len;
@@ -165,7 +96,7 @@ HStore * adeven_count_int_array( Datum* i_data, int n, bool * nulls )
     if( n == 1 ) {
         pairs = palloc0( sizeof( Pairs ) );
         int value = DatumGetInt32( i_data[0] );
-        int digit_key_num = adeven_count_get_digit_num( value );
+        int digit_key_num = adeven_get_digit_num( value );
         char * dig_key_str = palloc0( digit_key_num );
         char * dig_val_str = palloc0( 1 );
         sprintf( dig_key_str, "%d", value );
@@ -258,8 +189,8 @@ HStore * adeven_count_int_array( Datum* i_data, int n, bool * nulls )
 
     for( i = 0; i < m; ++i )
     {
-        int digit_key_num = adeven_count_get_digit_num( b[i] );
-        int digit_val_num = adeven_count_get_digit_num( c[i] );
+        int digit_key_num = adeven_get_digit_num( b[i] );
+        int digit_val_num = adeven_get_digit_num( c[i] );
         char * dig_key_str = palloc0( digit_key_num );
         char * dig_val_str = palloc0( digit_val_num );
         sprintf( dig_key_str, "%d", b[i] );
