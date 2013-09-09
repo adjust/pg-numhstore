@@ -6,7 +6,7 @@ MODULE_big = pg_numhstore
 OBJS = src/array_count.o src/avltree.o src/hstore_add.o src/array_add.o src/pg_numhstore.o
 PG_CPPFLAGS += -std=c99
 
-TESTS        = $(wildcard test/sql/*.sql)
+TESTS        = setup $(filter-out test/sql/setup.sql, $(wildcard test/sql/*.sql))
 REGRESS      = $(patsubst test/sql/%.sql,%,$(TESTS))
 REGRESS_OPTS = --inputdir=test --load-language=plpgsql
 
