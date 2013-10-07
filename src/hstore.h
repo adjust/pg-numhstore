@@ -7,7 +7,7 @@
 #include "fmgr.h"
 #include "utils/array.h"
 
-
+typedef int32 int4;
 /*
  * HEntry: there is one of these for each key _and_ value in an hstore
  *
