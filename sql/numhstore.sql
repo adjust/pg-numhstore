@@ -217,10 +217,10 @@ BEGIN
 RETURN
   COALESCE (hstore(
     array_agg(key),
-    array_agg((l.value::decimal / NULLIF(r.value::decimal,0))::text)
+    array_agg((COALESCE(l.value::decimal,0) / NULLIF(r.value::decimal,0))::text)
   ),''::hstore)
   FROM each(a) l
-  INNER JOIN each(b) r
+  FULL OUTER JOIN each(b) r
   USING (key);
 END
 $$ LANGUAGE 'plpgsql' IMMUTABLE STRICT;
@@ -259,6 +259,78 @@ CREATE FUNCTION hstore_mul(a floathstore, b numeric) RETURNS floathstore AS $$
 $$ LANGUAGE 'plpgsql' IMMUTABLE  STRICT;
 
 
+CREATE FUNCTION hstore_mul(a floathstore, b floathstore) RETURNS floathstore AS $$
+  BEGIN
+    RETURN
+      COALESCE (hstore(
+        array_agg(key),
+        array_agg((l.value::decimal * r.value::decimal)::text)
+      ),''::hstore)
+      FROM each(a) l
+      FULL OUTER JOIN each(b) r
+      USING (key);
+  END
+$$ LANGUAGE 'plpgsql' IMMUTABLE  STRICT;
+
+CREATE FUNCTION hstore_mul(a inthstore, b inthstore) RETURNS floathstore AS $$
+  BEGIN
+    RETURN
+      COALESCE (hstore(
+        array_agg(key),
+        array_agg((l.value::integer * r.value::integer)::text)
+      ),''::hstore)
+      FROM each(a) l
+      FULL OUTER JOIN each(b) r
+      USING (key);
+  END
+$$ LANGUAGE 'plpgsql' IMMUTABLE  STRICT;
+
+CREATE FUNCTION hstore_add(a inthstore, b bigint) RETURNS inthstore AS $$
+  BEGIN
+    RETURN
+      COALESCE (hstore(
+        array_agg(key),
+        array_agg((l.value::bigint + b)::text)
+      ),''::inthstore)
+      FROM each(a) l ;
+  END
+$$ LANGUAGE 'plpgsql' IMMUTABLE STRICT;
+
+CREATE FUNCTION hstore_add(a floathstore, b numeric) RETURNS floathstore AS $$
+  BEGIN
+    RETURN
+      COALESCE (hstore(
+        array_agg(key),
+        array_agg((l.value::numeric + b)::text)
+      ),''::inthstore)
+      FROM each(a) l ;
+  END
+$$ LANGUAGE 'plpgsql' IMMUTABLE STRICT;
+
+CREATE FUNCTION hstore_sub(a inthstore, b bigint) RETURNS inthstore AS $$
+  BEGIN
+    RETURN
+      COALESCE (hstore(
+        array_agg(key),
+        array_agg((l.value::bigint - b)::text)
+      ),''::inthstore)
+      FROM each(a) l ;
+  END
+$$ LANGUAGE 'plpgsql' IMMUTABLE STRICT;
+
+CREATE FUNCTION hstore_sub(a floathstore, b numeric) RETURNS floathstore AS $$
+  BEGIN
+    RETURN
+      COALESCE (hstore(
+        array_agg(key),
+        array_agg((l.value::numeric - b)::text)
+      ),''::inthstore)
+      FROM each(a) l ;
+  END
+$$ LANGUAGE 'plpgsql' IMMUTABLE STRICT;
+
+
+
 -- the / operator for the hstore div
 CREATE OPERATOR * (
 leftarg = inthstore,
@@ -271,6 +343,43 @@ leftarg = floathstore,
 rightarg = numeric,
 procedure = hstore_mul
 );
+
+CREATE OPERATOR + (
+leftarg = inthstore,
+rightarg = bigint,
+procedure = hstore_add
+);
+
+CREATE OPERATOR + (
+leftarg = floathstore,
+rightarg = numeric,
+procedure = hstore_add
+);
+
+CREATE OPERATOR - (
+leftarg = inthstore,
+rightarg = bigint,
+procedure = hstore_sub
+);
+
+CREATE OPERATOR - (
+leftarg = floathstore,
+rightarg = numeric,
+procedure = hstore_sub
+);
+
+CREATE OPERATOR * (
+leftarg = inthstore,
+rightarg = inthstore,
+procedure = hstore_mul
+);
+
+CREATE OPERATOR * (
+leftarg = floathstore,
+rightarg = floathstore,
+procedure = hstore_mul
+);
+
 
 
 -- the - operator for the hstore div
