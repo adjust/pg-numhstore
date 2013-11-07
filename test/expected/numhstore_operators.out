@@ -1,0 +1,184 @@
+SELECT 'a=>3, b=>2'::inthstore + 'a=>2, c=>5'::inthstore;
+           ?column?           
+------------------------------
+ "a"=>"5", "b"=>"2", "c"=>"5"
+(1 row)
+
+SELECT 'a=>3, b=>2'::inthstore - 'a=>2, c=>5'::inthstore;
+           ?column?            
+-------------------------------
+ "a"=>"1", "b"=>"2", "c"=>"-5"
+(1 row)
+
+SELECT 'a=>3, b=>2'::inthstore * 'a=>2, c=>5'::inthstore;
+            ?column?            
+--------------------------------
+ "a"=>"6", "b"=>NULL, "c"=>NULL
+(1 row)
+
+SELECT 'a=>3, b=>2'::inthstore / 'a=>2, b=>5'::inthstore;
+                         ?column?                         
+----------------------------------------------------------
+ "a"=>"1.5000000000000000", "b"=>"0.40000000000000000000"
+(1 row)
+
+SELECT 'a=>3, b=>2'::inthstore / 'a=>2, b=>2, c=>5'::inthstore;
+                              ?column?                               
+---------------------------------------------------------------------
+ "a"=>"1.5000000000000000", "b"=>"1.00000000000000000000", "c"=>NULL
+(1 row)
+
+SELECT 'a=>3, b=>2, c=>5'::inthstore / 'a=>2, b=>2'::inthstore;
+ERROR:  Keys of the numerator doesn't match denominator.
+DETAIL:  extra keys are {c}
+HINT:  You may want to slice before
+SELECT 'a=>3, b=>2'::floathstore + 'a=>2, c=>5'::floathstore;
+           ?column?           
+------------------------------
+ "a"=>"5", "b"=>"2", "c"=>"5"
+(1 row)
+
+SELECT 'a=>3, b=>2'::floathstore - 'a=>2, c=>5'::floathstore;
+           ?column?            
+-------------------------------
+ "a"=>"1", "b"=>"2", "c"=>"-5"
+(1 row)
+
+SELECT 'a=>3, b=>2'::floathstore * 'a=>2, c=>5'::floathstore;
+            ?column?            
+--------------------------------
+ "a"=>"6", "b"=>NULL, "c"=>NULL
+(1 row)
+
+SELECT 'a=>3, b=>2'::floathstore / 'a=>2, b=>5'::floathstore;
+                         ?column?                         
+----------------------------------------------------------
+ "a"=>"1.5000000000000000", "b"=>"0.40000000000000000000"
+(1 row)
+
+SELECT 'a=>3, b=>2'::floathstore / 'a=>2, b=>2, c=>5'::floathstore;
+                              ?column?                               
+---------------------------------------------------------------------
+ "a"=>"1.5000000000000000", "b"=>"1.00000000000000000000", "c"=>NULL
+(1 row)
+
+SELECT 'a=>3, b=>2, c=>5'::floathstore / 'a=>2, b=>2'::floathstore;
+ERROR:  Keys of the numerator doesn't match denominator.
+DETAIL:  extra keys are {c}
+HINT:  You may want to slice before
+SELECT 'a=>3, b=>2'::floathstore + 'a=>2, c=>5'::inthstore;
+           ?column?           
+------------------------------
+ "a"=>"5", "b"=>"2", "c"=>"5"
+(1 row)
+
+SELECT 'a=>3, b=>2'::floathstore - 'a=>2, c=>5'::inthstore;
+           ?column?            
+-------------------------------
+ "a"=>"1", "b"=>"2", "c"=>"-5"
+(1 row)
+
+SELECT 'a=>3, b=>2'::floathstore * 'a=>2, c=>5'::inthstore;
+            ?column?            
+--------------------------------
+ "a"=>"6", "b"=>NULL, "c"=>NULL
+(1 row)
+
+SELECT 'a=>3, b=>2'::floathstore / 'a=>2, b=>5'::inthstore;
+                         ?column?                         
+----------------------------------------------------------
+ "a"=>"1.5000000000000000", "b"=>"0.40000000000000000000"
+(1 row)
+
+SELECT 'a=>3, b=>2'::floathstore / 'a=>2, b=>2, c=>5'::inthstore;
+                              ?column?                               
+---------------------------------------------------------------------
+ "a"=>"1.5000000000000000", "b"=>"1.00000000000000000000", "c"=>NULL
+(1 row)
+
+SELECT 'a=>3, b=>2, c=>5'::floathstore / 'a=>2, b=>2'::inthstore;
+ERROR:  Keys of the numerator doesn't match denominator.
+DETAIL:  extra keys are {c}
+HINT:  You may want to slice before
+SELECT 'a=>3, b=>2'::inthstore + 'a=>2, c=>5'::floathstore;
+           ?column?           
+------------------------------
+ "a"=>"5", "b"=>"2", "c"=>"5"
+(1 row)
+
+SELECT 'a=>3, b=>2'::inthstore - 'a=>2, c=>5'::floathstore;
+           ?column?            
+-------------------------------
+ "a"=>"1", "b"=>"2", "c"=>"-5"
+(1 row)
+
+SELECT 'a=>3, b=>2'::inthstore * 'a=>2, c=>5'::floathstore;
+            ?column?            
+--------------------------------
+ "a"=>"6", "b"=>NULL, "c"=>NULL
+(1 row)
+
+SELECT 'a=>3, b=>2'::inthstore / 'a=>2, b=>5'::floathstore;
+                         ?column?                         
+----------------------------------------------------------
+ "a"=>"1.5000000000000000", "b"=>"0.40000000000000000000"
+(1 row)
+
+SELECT 'a=>3, b=>2'::inthstore / 'a=>2, b=>2, c=>5'::floathstore;
+                              ?column?                               
+---------------------------------------------------------------------
+ "a"=>"1.5000000000000000", "b"=>"1.00000000000000000000", "c"=>NULL
+(1 row)
+
+SELECT 'a=>3, b=>2, c=>5'::inthstore / 'a=>2, b=>2'::floathstore;
+ERROR:  Keys of the numerator doesn't match denominator.
+DETAIL:  extra keys are {c}
+HINT:  You may want to slice before
+SELECT 'a=>3, b=>2'::inthstore + 3;
+      ?column?      
+--------------------
+ "a"=>"6", "b"=>"5"
+(1 row)
+
+SELECT 'a=>3, b=>2'::inthstore - 3;
+      ?column?       
+---------------------
+ "a"=>"0", "b"=>"-1"
+(1 row)
+
+SELECT 'a=>3, b=>2'::inthstore * 3;
+      ?column?      
+--------------------
+ "a"=>"9", "b"=>"6"
+(1 row)
+
+SELECT 'a=>3, b=>2'::inthstore / 3;
+                           ?column?                           
+--------------------------------------------------------------
+ "a"=>"1.00000000000000000000", "b"=>"0.66666666666666666667"
+(1 row)
+
+SELECT 'a=>3, b=>2'::floathstore + 3;
+      ?column?      
+--------------------
+ "a"=>"6", "b"=>"5"
+(1 row)
+
+SELECT 'a=>3, b=>2'::floathstore - 3;
+      ?column?       
+---------------------
+ "a"=>"0", "b"=>"-1"
+(1 row)
+
+SELECT 'a=>3, b=>2'::floathstore * 3;
+      ?column?      
+--------------------
+ "a"=>"9", "b"=>"6"
+(1 row)
+
+SELECT 'a=>3, b=>2'::floathstore / 3;
+                           ?column?                           
+--------------------------------------------------------------
+ "a"=>"1.00000000000000000000", "b"=>"0.66666666666666666667"
+(1 row)
+
