@@ -94,7 +94,7 @@ void adeven_add_read_pair( HEntry * entries, char * base, int index, char ** key
     memcpy( *key, HS_KEY( entries, base, index ), *keylen );
     *vali = atol( val );
 
-    pfree( val );
+    //pfree( val );
 }
 
 int adeven_add_min( int a, int b )
