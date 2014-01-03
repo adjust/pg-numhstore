@@ -99,8 +99,8 @@ HStore * hstoreUpgrade( Datum orig )
 size_t adeven_get_digit_num( long number )
 {
     size_t count = 0;
-    if( number == 0 )
-        return 1;
+    if( number == 0 || number < 0 )
+        ++count;
     while( number != 0 )
     {
         number /= 10;
