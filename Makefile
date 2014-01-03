@@ -6,7 +6,8 @@ MODULE_big = pg_numhstore
 OBJS = src/array_count.o src/avltree.o src/hstore_add.o src/array_add.o src/pg_numhstore.o
 PG_CPPFLAGS += -std=c99
 
-TESTS        = setup $(filter-out test/sql/setup.sql, $(wildcard test/sql/*.sql))
+TESTS        = setup $(filter-out test/sql/setup.sql test/sql/update.sql, $(wildcard test/sql/*.sql)) \
+							 update $(filter-out test/sql/setup.sql test/sql/update.sql, $(wildcard test/sql/*.sql))
 REGRESS      = $(patsubst test/sql/%.sql,%,$(TESTS))
 REGRESS_OPTS = --inputdir=test --load-language=plpgsql
 
@@ -16,8 +17,41 @@ all: concat
 
 concat:
 	echo > sql/$(EXTENSION)--$(EXTVERSION).sql
-	cat $(filter-out $(wildcard sql/*--*.sql),$(wildcard sql/*.sql)) >> sql/$(EXTENSION)--$(EXTVERSION).sql
+	#cat $(filter-out $(wildcard sql/*--*.sql),$(wildcard sql/*.sql))
+	cat \
+		sql/numhstore.sql \
+		sql/types.sql \
+		sql/hstore_from_array.sql \
+		sql/add.sql \
+	 	sql/div.sql \
+		sql/mul.sql \
+		sql/sub.sql \
+		sql/helper.sql \
+		sql/aggregates.sql \
+		sql/operators.sql \
+		sql/depricated.sql \
+	>> sql/$(EXTENSION)--$(EXTVERSION).sql
 
+FUNCTIONS = \
+	sql/hstore_from_array.sql \
+	sql/add.sql \
+	sql/div.sql \
+	sql/mul.sql \
+	sql/sub.sql \
+	sql/helper.sql \
+	sql/depricated.sql
+
+new_version:
+
+	echo > sql/$(EXTENSION)--$(EXTVERSION)--$(NEWVERSION).sql
+
+	sed 's/CREATE EXTENSION/UPDATE EXTENSION/g' sql/numhstore.sql >> sql/$(EXTENSION)--$(EXTVERSION)--$(NEWVERSION).sql
+
+	for i in $(FUNCTIONS); \
+		do sed 's/CREATE FUNCTION/CREATE OR REPLACE FUNCTION/g' $$i >> sql/$(EXTENSION)--$(EXTVERSION)--$(NEWVERSION).sql;\
+	done
+
+	sed -i '' 's/$(EXTVERSION)/$(NEWVERSION)/g' numhstore.control
 
 DATA = $(wildcard sql/*--*.sql) sql/$(EXTENSION)--$(EXTVERSION).sql
 EXTRA_CLEAN = sql/$(EXTENSION)--$(EXTVERSION).sql

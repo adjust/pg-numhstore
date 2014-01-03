@@ -2,16 +2,16 @@ CREATE OR REPLACE FUNCTION hstore_div(a floathstore, b floathstore) RETURNS floa
 DECLARE
   key_match boolean;
   missing_keys text[];
-BEGIN  
+BEGIN
   SELECT akeys(a) <@ akeys(b) INTO key_match;
   IF NOT key_match THEN
-    
-    SELECT array_agg(l) 
+
+    SELECT array_agg(l)
     FROM  skeys(a) l
-    FULL OUTER JOIN skeys(b) r ON l = r 
-    WHERE r IS NULL 
+    FULL OUTER JOIN skeys(b) r ON l = r
+    WHERE r IS NULL
     INTO missing_keys;
-    
+
     RAISE EXCEPTION USING
       message = 'Keys of the numerator doesn''t match denominator.',
       detail  = 'extra keys are ' || missing_keys::text,
