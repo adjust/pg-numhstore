@@ -82,3 +82,9 @@ SELECT array_add(ARRAY['foo','bar','foo'],ARRAY[2E9::integer,2E9::integer,2E9::i
  "bar"=>"2000000000", "foo"=>"4000000000"
 (1 row)
 
+SELECT array_add(Array['foo','bar','foo'], Array[2,3,-5]);
+        array_add        
+-------------------------
+ "bar"=>"3", "foo"=>"-3"
+(1 row)
+
