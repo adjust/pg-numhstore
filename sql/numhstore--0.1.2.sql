@@ -152,13 +152,6 @@ RETURN
 END
 $$ LANGUAGE 'plpgsql' IMMUTABLE STRICT;
 
--- the / operator for the hstore div
-CREATE OPERATOR / (
-    leftarg = floathstore,
-    rightarg = numeric,
-    procedure = hstore_div
-);
-
 -- divides hstore with hstore
 -- Select hstore_div('foo=>10, bar => 15'::hstore, 'foo=>5, bar => 3'::hstore)
 -- =>  "bar"=>"5", "foo"=>"2"
@@ -388,6 +381,14 @@ CREATE OPERATOR / (
     rightarg = floathstore,
     procedure = hstore_div
 );
+
+-- the / operator for the hstore div
+CREATE OPERATOR / (
+    leftarg = floathstore,
+    rightarg = numeric,
+    procedure = hstore_div
+);
+
 
 -- the / operator for the hstore div
 CREATE OPERATOR * (

@@ -4,7 +4,6 @@ EXTVERSION   = $(shell grep default_version $(EXTENSION).control | \
 DATA         = $(filter-out $(wildcard sql/*--*.sql),$(wildcard sql/*.sql))
 MODULE_big = pg_numhstore
 OBJS = src/array_count.o src/avltree.o src/hstore_add.o src/array_add.o src/pg_numhstore.o
-PG_CPPFLAGS += -std=c99
 
 TESTS        = setup $(filter-out test/sql/setup.sql test/sql/update.sql, $(wildcard test/sql/*.sql)) \
 							 update $(filter-out test/sql/setup.sql test/sql/update.sql, $(wildcard test/sql/*.sql))
@@ -13,9 +12,9 @@ REGRESS_OPTS = --inputdir=test --load-language=plpgsql
 
 PG_CONFIG = pg_config
 
-all: concat
+all:
 
-concat:
+release:
 	echo > sql/$(EXTENSION)--$(EXTVERSION).sql
 	#cat $(filter-out $(wildcard sql/*--*.sql),$(wildcard sql/*.sql))
 	cat \
@@ -53,7 +52,7 @@ new_version:
 
 	sed -i '' 's/$(EXTVERSION)/$(NEWVERSION)/g' numhstore.control
 
-DATA = $(wildcard sql/*--*.sql) sql/$(EXTENSION)--$(EXTVERSION).sql
-EXTRA_CLEAN = sql/$(EXTENSION)--$(EXTVERSION).sql
+DATA = $(wildcard sql/*--*.sql)
+
 PGXS := $(shell $(PG_CONFIG) --pgxs)
 include $(PGXS)
