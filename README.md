@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/adeven/pg-numhstore.png?branch=master)](https://travis-ci.org/adeven/pg-numhstore)
+
 # Overview
 
 This Postgres extension introduces two new data types `inthstore` and `floathstore` wich depends on postgres
@@ -11,7 +13,7 @@ These types are used to hold integer and float values respectively.
 
 ```postgres
 SELECT 'a=>3, b=>2'::inthstore + 'a=>2, c=>5'::inthstore;
-           inthstore           
+           inthstore
 ------------------------------
  "a"=>"5", "b"=>"2", "c"=>"5"
 ```
@@ -20,7 +22,7 @@ SELECT 'a=>3, b=>2'::inthstore + 'a=>2, c=>5'::inthstore;
 
 ```postgres
 SELECT 'a=>3, b=>2'::inthstore - 'a=>2, c=>5'::inthstore;
-           inthstore            
+           inthstore
 -------------------------------
  "a"=>"1", "b"=>"2", "c"=>"-5"
  ```
@@ -39,7 +41,7 @@ SELECT 'a=>3, b=>2'::inthstore * 'a=>2, c=>5'::inthstore;
 
 ```postgres
 SELECT 'a=>3, b=>2'::inthstore / 'a=>2, c=>5'::inthstore;
-                        floathstore                         
+                        floathstore
 ----------------------------------------------------------
  "a"=>"1.5000000000000000", "c"=>"0.00000000000000000000"
  ```
@@ -48,7 +50,7 @@ SELECT 'a=>3, b=>2'::inthstore / 'a=>2, c=>5'::inthstore;
 
 ```postgres
 SELECT 'a=>3, b=>2'::inthstore + 3;
-      inthstore      
+      inthstore
 --------------------
  "a"=>"6", "b"=>"5"
  ```
@@ -57,7 +59,7 @@ SELECT 'a=>3, b=>2'::inthstore + 3;
 
 ```postgres
 SELECT 'a=>3, b=>2'::inthstore - 3;
-      inthstore       
+      inthstore
 ---------------------
  "a"=>"0", "b"=>"-1"
  ```
@@ -66,17 +68,17 @@ SELECT 'a=>3, b=>2'::inthstore - 3;
 
 ```postgres
 SELECT 'a=>3, b=>2'::inthstore * 3;
-      inthstore      
+      inthstore
 --------------------
  "a"=>"9", "b"=>"6"
  ```
 
- 
+
  ### `inthstore / int`
 
 ```postgres
 SELECT 'a=>3, b=>2'::inthstore / 3;
-                           floathstore                           
+                           floathstore
 --------------------------------------------------------------
  "a"=>"1.00000000000000000000", "b"=>"0.66666666666666666667"
  ```
@@ -87,7 +89,7 @@ SELECT 'a=>3, b=>2'::inthstore / 3;
 
 ```postgres
 SELECT array_count(ARRAY['a','a','b']);
-     inthstore      
+     inthstore
 ----------------------
  "a"=>"2", "b"=>"1"
 ```
@@ -96,14 +98,14 @@ SELECT array_count(ARRAY['a','a','b']);
 
 ```postgres
 SELECT hstore_sum_up('foo=>10, bar => 15'::inthstore);
- bigint	
+ bigint
 ---------
       25
 ```
 
 ```postgres
 SELECT hstore_sum_up('foo=>2.5, bar => 4.5'::floathstore);
-  numeric 
+  numeric
 ----------
       7.0
 ```
