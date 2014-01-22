@@ -29,9 +29,11 @@ SELECT 'a=>3, b=>2'::inthstore / 'a=>2, b=>2, c=>5'::inthstore;
 (1 row)
 
 SELECT 'a=>3, b=>2, c=>5'::inthstore / 'a=>2, b=>2'::inthstore;
-ERROR:  Keys of the numerator doesn't match denominator.
-DETAIL:  extra keys are {c}
-HINT:  You may want to slice before
+                              ?column?                               
+---------------------------------------------------------------------
+ "a"=>"1.5000000000000000", "b"=>"1.00000000000000000000", "c"=>NULL
+(1 row)
+
 SELECT 'a=>3, b=>2'::floathstore + 'a=>2, c=>5'::floathstore;
            ?column?           
 ------------------------------
@@ -63,9 +65,11 @@ SELECT 'a=>3, b=>2'::floathstore / 'a=>2, b=>2, c=>5'::floathstore;
 (1 row)
 
 SELECT 'a=>3, b=>2, c=>5'::floathstore / 'a=>2, b=>2'::floathstore;
-ERROR:  Keys of the numerator doesn't match denominator.
-DETAIL:  extra keys are {c}
-HINT:  You may want to slice before
+                              ?column?                               
+---------------------------------------------------------------------
+ "a"=>"1.5000000000000000", "b"=>"1.00000000000000000000", "c"=>NULL
+(1 row)
+
 SELECT 'a=>3, b=>2'::floathstore + 'a=>2, c=>5'::inthstore;
            ?column?           
 ------------------------------
@@ -97,9 +101,11 @@ SELECT 'a=>3, b=>2'::floathstore / 'a=>2, b=>2, c=>5'::inthstore;
 (1 row)
 
 SELECT 'a=>3, b=>2, c=>5'::floathstore / 'a=>2, b=>2'::inthstore;
-ERROR:  Keys of the numerator doesn't match denominator.
-DETAIL:  extra keys are {c}
-HINT:  You may want to slice before
+                              ?column?                               
+---------------------------------------------------------------------
+ "a"=>"1.5000000000000000", "b"=>"1.00000000000000000000", "c"=>NULL
+(1 row)
+
 SELECT 'a=>3, b=>2'::inthstore + 'a=>2, c=>5'::floathstore;
            ?column?           
 ------------------------------
@@ -131,9 +137,11 @@ SELECT 'a=>3, b=>2'::inthstore / 'a=>2, b=>2, c=>5'::floathstore;
 (1 row)
 
 SELECT 'a=>3, b=>2, c=>5'::inthstore / 'a=>2, b=>2'::floathstore;
-ERROR:  Keys of the numerator doesn't match denominator.
-DETAIL:  extra keys are {c}
-HINT:  You may want to slice before
+                              ?column?                               
+---------------------------------------------------------------------
+ "a"=>"1.5000000000000000", "b"=>"1.00000000000000000000", "c"=>NULL
+(1 row)
+
 SELECT 'a=>3, b=>2'::inthstore + 3;
       ?column?      
 --------------------
