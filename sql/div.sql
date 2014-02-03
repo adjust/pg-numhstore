@@ -23,7 +23,7 @@ BEGIN
 RETURN
   COALESCE (hstore(
     array_agg(key),
-    array_agg((l.value::decimal / r.value::decimal)::text)
+    array_agg((l.value::decimal / NULLIF(r.value::decimal,0))::text)
   ),''::hstore)
   FROM each(a) l
   FULL OUTER JOIN each(b) r
