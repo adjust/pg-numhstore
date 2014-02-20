@@ -94,11 +94,13 @@ HStore * adeven_count_int_array( Datum* i_data, int n, bool * nulls )
     int4 buflen = 0;
 
     if( n == 1 ) {
+        int value, digit_key_num;
+        char *dig_key_str, *dig_val_str;
         pairs = palloc0( sizeof( Pairs ) );
-        int value = DatumGetInt32( i_data[0] );
-        int digit_key_num = adeven_get_digit_num( value );
-        char * dig_key_str = palloc0( digit_key_num );
-        char * dig_val_str = palloc0( 1 );
+        value = DatumGetInt32( i_data[0] );
+        digit_key_num = adeven_get_digit_num( value );
+        dig_key_str = palloc0( digit_key_num );
+        dig_val_str = palloc0( 1 );
         sprintf( dig_key_str, "%d", value );
         sprintf( dig_val_str, "%d", 1 );
         pairs[0].key = dig_key_str;
