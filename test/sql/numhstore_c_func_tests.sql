@@ -15,3 +15,4 @@ SELECT array_add(ARRAY['foo','foo','bar','foo'],ARRAY[2,NULL,2,2]);
 SELECT array_add(ARRAY['foo',NULL,'foo','bar'],ARRAY[2,2,2,2]);
 SELECT array_add(ARRAY['foo','bar','foo'],ARRAY[2E9::integer,2E9::integer,2E9::integer]);
 SELECT array_add(Array['foo','bar','foo'], Array[2,3,-5]);
+SELECT array_add(ARRAY[1,2,3]::text[], ARRAY[1,NULL,3]);
