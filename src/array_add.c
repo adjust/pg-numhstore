@@ -106,7 +106,8 @@ Datum array_add( PG_FUNCTION_ARGS )
         memcpy( current_key, VARDATA( key_data[i] ), key_len );
         current_key[key_len] = '\0';
         long current_value = DatumGetInt32( val_data[i] );
-
+        if( current_value == 0 )
+            continue;
         position = find( current_key, key_len, tree );
         if( position == NULL )
         {
