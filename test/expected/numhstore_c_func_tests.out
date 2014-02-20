@@ -88,3 +88,15 @@ SELECT array_add(Array['foo','bar','foo'], Array[2,3,-5]);
  "bar"=>"3", "foo"=>"-3"
 (1 row)
 
+SELECT array_add(ARRAY['foo','bar','baz','foo','bar','baz'], ARRAY[1,NULL,1,1,NULL,NULL]);
+       array_add        
+------------------------
+ "baz"=>"1", "foo"=>"2"
+(1 row)
+
+SELECT array_add(ARRAY['foo','bar','baz','foo','bar','baz'], ARRAY[1,0,1,1,0,0]);
+             array_add              
+------------------------------------
+ "bar"=>"0", "baz"=>"1", "foo"=>"2"
+(1 row)
+
