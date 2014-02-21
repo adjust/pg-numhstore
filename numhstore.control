@@ -1,5 +1,5 @@
 # numhstore extension
 comment = 'Extents hstore with inthstore and floathstore'
-default_version = '0.1.4'
+default_version = '0.1.5'
 relocatable = true
 requires = 'hstore'
