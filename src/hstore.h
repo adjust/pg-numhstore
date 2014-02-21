@@ -7,7 +7,10 @@
 #include "fmgr.h"
 #include "utils/array.h"
 
+#if PG_VERSION_NUM >= 90300
 typedef int32 int4;
+#endif
+
 /*
  * HEntry: there is one of these for each key _and_ value in an hstore
  *
