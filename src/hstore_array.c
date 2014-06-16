@@ -144,3 +144,53 @@ Datum hstore_array( PG_FUNCTION_ARGS )
     HAArray_sort(&a);
     return array_to_hstore(&a);
 }
+
+Datum hstore_array_finalfn( PG_FUNCTION_ARGS )
+{
+    ArrayBuildState  *input;
+    Datum      *data;
+    bool       *nulls;
+    int         count;
+    int         i;
+    HAArray     a;
+
+    // working vars
+    HStore *hstore;
+    HEntry *entries;
+    char *key;
+    long val;
+    char *base;
+    size_t len;
+    int hstore_count;
+    int index;
+
+    if (PG_ARGISNULL(0))
+    {
+            PG_RETURN_NULL();
+    }
+
+    Assert(AggCheckCallContext(fcinfo, NULL));
+
+    input = (ArrayBuildState *) PG_GETARG_POINTER(0);
+    count = input->nelems;
+    nulls = input->dnulls;
+    data = input->dvalues;
+
+    HAArray_init(&a, 200);
+    for (i = 0; i < count; ++i)
+    {
+        if (nulls[i])
+            continue;
+        hstore = (HStore *) data[i];
+        entries = ARRPTR(hstore);
+        base = STRPTR(hstore);
+        hstore_count = HS_COUNT(hstore);
+        for (index = 0; index < hstore_count; ++index)
+        {
+            adeven_add_read_pair(entries, base, index, &key, &val, &len);
+            HAArray_insert(&a, key, len, val);
+        }
+    }
+    HAArray_sort(&a);
+    return array_to_hstore(&a);
+}

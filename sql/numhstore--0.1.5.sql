@@ -103,9 +103,8 @@ RETURNS inthstore AS
 CREATE FUNCTION hstore_add(a inthstore, b inthstore)
 RETURNS inthstore AS
 '$libdir/pg_numhstore.so', 'hstore_add' LANGUAGE C IMMUTABLE;
-
-CREATE FUNCTION hstore_array(anyarray)
-RETURNS hstore AS
+CREATE FUNCTION hstore_array(a anyarray)
+RETURNS inthstore AS
 '$libdir/pg_numhstore.so', 'hstore_array' LANGUAGE C IMMUTABLE;
 
 
@@ -332,6 +331,10 @@ USING (key);
 END;
 $$ LANGUAGE 'plpgsql' IMMUTABLE STRICT;
 
+CREATE FUNCTION hstore_array_finalfn(internal)
+RETURNS inthstore AS
+'$libdir/pg_numhstore.so'
+LANGUAGE C IMMUTABLE STRICT;
 
 --return the average of hstores
 CREATE AGGREGATE avg (
@@ -352,11 +355,17 @@ initcond = '{}'
 
 
 -- the aggregation sum of hstores
+--CREATE AGGREGATE sum (
+--sfunc = hstore_add,
+--basetype = inthstore,
+--stype = inthstore,
+--initcond = ''
+--);
 CREATE AGGREGATE sum (
-sfunc = hstore_add,
+sfunc = array_agg_transfn,
 basetype = inthstore,
-stype = inthstore,
-initcond = ''
+stype = internal,
+finalfunc = hstore_array_finalfn
 );
 
 CREATE AGGREGATE sum (
@@ -365,6 +374,7 @@ basetype = floathstore,
 stype = floathstore,
 initcond = ''
 );
+
 -- the / operator for the hstore_div_hstore
 CREATE OPERATOR / (
     leftarg = floathstore,
