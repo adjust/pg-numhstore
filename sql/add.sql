@@ -4,6 +4,10 @@
 CREATE FUNCTION hstore_add(a inthstore, b inthstore)
 RETURNS inthstore AS
 '$libdir/pg_numhstore.so', 'hstore_add' LANGUAGE C IMMUTABLE;
+CREATE FUNCTION hstore_array(a anyarray)
+RETURNS inthstore AS
+'$libdir/pg_numhstore.so', 'hstore_array' LANGUAGE C IMMUTABLE;
+
 
 CREATE FUNCTION hstore_add(a floathstore, b floathstore) RETURNS floathstore AS $$
 BEGIN
