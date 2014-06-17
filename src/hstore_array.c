@@ -10,8 +10,11 @@ void HAArray_init(HAArray *a, size_t initial_size)
 void HAArray_insert(HAArray *a, char *key, int len, long val)
 {
     if(a->size == a->used) {
+        HAEntry  *entry_swap = a->entry;
         a->size *= 2;
-        a->entry = repalloc(a->entry, a->size * sizeof(HAEntry));
+        a->entry = palloc0(a->size * sizeof(HAEntry));
+        memcpy(a->entry, entry_swap, a->used * sizeof(HAEntry));
+        pfree(entry_swap);
     }
     a->entry[a->used].key = key;
     a->entry[a->used].len = len;
