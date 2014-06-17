@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/adeven/pg-numhstore.png?branch=master)](https://travis-ci.org/adeven/pg-numhstore)
+[![Build Status](https://travis-ci.org/adjust/pg-numhstore.png?branch=master)](https://travis-ci.org/adjust/pg-numhstore)
 
 # Overview
 
