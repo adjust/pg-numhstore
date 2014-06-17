@@ -21,7 +21,7 @@ void HAArray_init(HAArray *a, size_t initial_size);
 void HAArray_insert(HAArray *a, char *key, int len, long val);
 int  HAArray_cmp(const void *a, const void *b);
 void HAArray_sort(HAArray *a);
-Datum array_to_hstore(HAArray *a);
+Datum array_to_hstore(Datum *data, int count, bool *nulls);
 
 extern void adeven_add_read_pair( HEntry * entries, char * base, int index, char ** key, long * vali, size_t * keylen );
 

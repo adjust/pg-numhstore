@@ -10,11 +10,8 @@ void HAArray_init(HAArray *a, size_t initial_size)
 void HAArray_insert(HAArray *a, char *key, int len, long val)
 {
     if(a->size == a->used) {
-        HAEntry  *entry_swap = a->entry;
         a->size *= 2;
-        a->entry = palloc0(a->size * sizeof(HAEntry));
-        memcpy(a->entry, entry_swap, a->used * sizeof(HAEntry));
-        pfree(entry_swap);
+        a->entry = repalloc(a->entry, a->size * sizeof(HAEntry));
     }
     a->entry[a->used].key = key;
     a->entry[a->used].len = len;
@@ -38,30 +35,63 @@ void inline HAArray_sort(HAArray *a)
     qsort(a->entry, a->used, sizeof(HAEntry), HAArray_cmp);
 }
 
-Datum array_to_hstore(HAArray *a)
+Datum array_to_hstore(Datum *data, int count, bool *nulls)
 {
-    int i, j = 0;
-    Pairs *pairs;
-    bool skip = false;
-    HStore *out;
-    int4 buflen = 0;
-    pairs = palloc0(a->used * sizeof(Pairs));
-    for (i = 0; i < a->used; ++i)
+    HStore *hstore,
+           *out;
+
+    HEntry *entries;
+
+    char   *key,
+           *base;
+
+    long    val;
+    size_t  len;
+
+    int     hstore_count,
+            index,
+            i,
+            j = 0;
+
+    HAArray a;
+    Pairs   *pairs;
+    bool     skip   = false;
+    int4     buflen = 0;
+
+    HAArray_init(&a, 200);
+    for (i = 0; i < count; ++i)
+    {
+        if (nulls[i])
+            continue;
+        hstore = (HStore *) data[i];
+        entries = ARRPTR(hstore);
+        base = STRPTR(hstore);
+        hstore_count = HS_COUNT(hstore);
+        for (index = 0; index < hstore_count; ++index)
+        {
+            adeven_add_read_pair(entries, base, index, &key, &val, &len);
+            HAArray_insert(&a, key, len, val);
+        }
+    }
+    HAArray_sort(&a);
+
+    pairs = palloc0(a.used * sizeof(Pairs));
+    for (i = 0; i < a.used; ++i)
     {
         int digit_num;
         char *num_str;
         int local = i+1;
 
-        while (HAArray_cmp(&a->entry[i], &a->entry[local]) == 0)
+        while (HAArray_cmp(&a.entry[i], &a.entry[local]) == 0)
         {
-            a->entry[i].val += a->entry[local++].val;
+            a.entry[i].val += a.entry[local++].val;
             skip = true;
         }
-        digit_num = adeven_get_digit_num(a->entry[i].val);
+        digit_num = adeven_get_digit_num(a.entry[i].val);
         num_str = palloc0(digit_num+1);
-        sprintf(num_str, "%ld", a->entry[i].val);
-        pairs[j].key = a->entry[i].key;
-        pairs[j].keylen = a->entry[i].len;
+        sprintf(num_str, "%ld", a.entry[i].val);
+        pairs[j].key = a.entry[i].key;
+        pairs[j].keylen = a.entry[i].len;
         pairs[j].val = num_str;
         pairs[j].vallen = digit_num;
         pairs[j].isnull = false;
@@ -78,7 +108,7 @@ Datum array_to_hstore(HAArray *a)
     PG_RETURN_POINTER(out);
 }
 
-Datum hstore_array( PG_FUNCTION_ARGS )
+Datum hstore_array(PG_FUNCTION_ARGS)
 {
     ArrayType  *input;
     Oid         type;
@@ -88,85 +118,46 @@ Datum hstore_array( PG_FUNCTION_ARGS )
     Datum      *data;
     bool       *nulls;
     int         count;
-    int         i;
-    HAArray     a;
-
-    // working vars
-    HStore *hstore;
-    HEntry *entries;
-    char *key;
-    long val;
-    char *base;
-    size_t len;
-    int hstore_count;
-    int index;
 
     if (PG_ARGISNULL(0))
     {
-            PG_RETURN_NULL();
+        PG_RETURN_NULL();
     }
+
     input = PG_GETARG_ARRAYTYPE_P(0);
-    type = ARR_ELEMTYPE(input);
+    type  = ARR_ELEMTYPE(input);
 
     get_typlenbyvalalign(
-            type,
-            &typlen,
-            &typbyval,
-            &typalign
+        type,
+        &typlen,
+        &typbyval,
+        &typalign
     );
 
     deconstruct_array(
-            input,
-            type,
-            typlen,
-            typbyval,
-            typalign,
-            &data,
-            &nulls,
-            &count
+        input,
+        type,
+        typlen,
+        typbyval,
+        typalign,
+        &data,
+        &nulls,
+        &count
     );
 
-    HAArray_init(&a, 200);
-    for (i = 0; i < count; ++i)
-    {
-        if (nulls[i])
-            continue;
-        hstore = (HStore *) data[i];
-        entries = ARRPTR(hstore);
-        base = STRPTR(hstore);
-        hstore_count = HS_COUNT(hstore);
-        for (index = 0; index < hstore_count; ++index)
-        {
-            adeven_add_read_pair(entries, base, index, &key, &val, &len);
-            HAArray_insert(&a, key, len, val);
-        }
-    }
-    HAArray_sort(&a);
-    return array_to_hstore(&a);
+    return array_to_hstore(data, count, nulls);
 }
 
-Datum hstore_array_finalfn( PG_FUNCTION_ARGS )
+Datum hstore_array_finalfn(PG_FUNCTION_ARGS)
 {
-    ArrayBuildState  *input;
-    Datum      *data;
-    bool       *nulls;
-    int         count;
-    int         i;
-    HAArray     a;
-
-    // working vars
-    HStore *hstore;
-    HEntry *entries;
-    char *key;
-    long val;
-    char *base;
-    size_t len;
-    int hstore_count;
-    int index;
+    ArrayBuildState *input;
+    Datum           *data;
+    bool            *nulls;
+    int              count;
 
     if (PG_ARGISNULL(0))
     {
-            PG_RETURN_NULL();
+        PG_RETURN_NULL();
     }
 
     Assert(AggCheckCallContext(fcinfo, NULL));
@@ -174,23 +165,7 @@ Datum hstore_array_finalfn( PG_FUNCTION_ARGS )
     input = (ArrayBuildState *) PG_GETARG_POINTER(0);
     count = input->nelems;
     nulls = input->dnulls;
-    data = input->dvalues;
+    data  = input->dvalues;
 
-    HAArray_init(&a, 200);
-    for (i = 0; i < count; ++i)
-    {
-        if (nulls[i])
-            continue;
-        hstore = (HStore *) data[i];
-        entries = ARRPTR(hstore);
-        base = STRPTR(hstore);
-        hstore_count = HS_COUNT(hstore);
-        for (index = 0; index < hstore_count; ++index)
-        {
-            adeven_add_read_pair(entries, base, index, &key, &val, &len);
-            HAArray_insert(&a, key, len, val);
-        }
-    }
-    HAArray_sort(&a);
-    return array_to_hstore(&a);
+    return array_to_hstore(data, count, nulls);
 }
