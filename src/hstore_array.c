@@ -84,11 +84,12 @@ Datum array_to_hstore(Datum *data, int count, bool *nulls)
         int digit_num;
         char *num_str;
         int local = i+1;
-
-        while (HAArray_cmp(&a.entry[i], &a.entry[local]) == 0)
-        {
-            a.entry[i].val += a.entry[local++].val;
-            skip = true;
+        if (i < a.used - 1) {
+            while (HAArray_cmp(&a.entry[i], &a.entry[local]) == 0)
+            {
+                a.entry[i].val += a.entry[local++].val;
+                skip = true;
+            }
         }
         digit_num = adeven_get_digit_num(a.entry[i].val);
         num_str = palloc0(digit_num+1);
