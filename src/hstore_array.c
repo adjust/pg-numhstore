@@ -85,7 +85,7 @@ Datum array_to_hstore(Datum *data, int count, bool *nulls)
         char *num_str;
         int local = i+1;
         if (i < a.used - 1) {
-            while (HAArray_cmp(&a.entry[i], &a.entry[local]) == 0)
+            while (local < a.used && HAArray_cmp(&a.entry[i], &a.entry[local]) == 0)
             {
                 a.entry[i].val += a.entry[local++].val;
                 skip = true;
