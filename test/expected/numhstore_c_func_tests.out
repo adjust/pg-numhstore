@@ -47,7 +47,7 @@ SELECT array_count(ARRAY[NULL,5,NULL,5,10,NULL,5]);
 (1 row)
 
 SELECT array_count(ARRAY[-5,3,5]);
-ERROR:  negative integers are not supported
+ERROR:  cannot count int_array that has negative integers
 SELECT array_add(array_agg((num/30)::text), array_agg(val)) FROM generate_series(0,100) num, generate_series(0,1000,10) val;
                            array_add                           
 ---------------------------------------------------------------

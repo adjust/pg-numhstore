@@ -128,7 +128,7 @@ HStore * adeven_count_int_array( Datum* i_data, int n, bool * nulls )
         {
             a[notNullCnt] = DatumGetInt32( i_data[i] );
             if ( a[notNullCnt] < 0 ) {
-                elog( ERROR, "negative integers are not supported" );
+                elog( ERROR, "cannot count int_array that has negative integers" );
             }
             if( a[notNullCnt] > biggest )
             {
