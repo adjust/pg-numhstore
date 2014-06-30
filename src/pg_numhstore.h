@@ -50,7 +50,7 @@ size_t hstoreCheckKeyLen( size_t len );
          *_valstr;                                     \
     int _keywidth,                                     \
         _valwidth;                                     \
-    LONG_TO_STR(_key, _keystr, _keywidth);             \
+    LONG_TO_STR((long) _key, _keystr, _keywidth);      \
     LONG_TO_STR(_value, _valstr, _valwidth);           \
     _pairs[_n].key = _keystr;                          \
     _pairs[_n].keylen = _keywidth;                     \

@@ -12,10 +12,8 @@ Datum array_to_hstore(Datum *data, int count, bool *nulls)
     int     hstore_count,
             index,
             i,
-            n,
-            j = 0;
+            n;
     Pairs   *pairs;
-    bool     skip   = false;
     int4     buflen = 0;
     AvlTree  tree;
     Position position;
