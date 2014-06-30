@@ -1,18 +1,4 @@
 #include "avltree.h"
-#include "postgres.h"
-#include <stdlib.h>
-
-struct AvlNode
-{
-    // payload
-    char * key;
-    int keylen;
-    int value;
-
-    AvlTree  left;
-    AvlTree  right;
-    int      height;
-};
 
 AvlTree make_empty( AvlTree t )
 {
@@ -51,6 +37,16 @@ int compare( char * key, int keylen, AvlTree node )
     return cmp;
 }
 
+int int_compare( int key, AvlTree node)
+{
+    if (key == node->intkey)
+        return 0;
+    else if (key < node->intkey)
+        return -1;
+    else
+        return 1;
+}
+
 Position find( char * key, int keylen, AvlTree t )
 {
     int cmp;
@@ -63,6 +59,22 @@ Position find( char * key, int keylen, AvlTree t )
         return find( key, keylen, t->left );
     else if( cmp > 0 )
         return find( key, keylen, t->right );
+    else
+        return t;
+}
+
+Position int_find(int key, AvlTree t)
+{
+    int cmp;
+
+    if( t == NULL)
+        return NULL;
+
+    cmp = int_compare(key, t);
+    if (cmp < 0)
+        return int_find(key, t->left);
+    else if (cmp > 0)
+        return int_find(key, t->right);
     else
         return t;
 }
@@ -205,13 +217,72 @@ AvlTree insert( char * key, int keylen, int value, AvlTree t )
     return t;
 }
 
+AvlTree int_insert( int key, int value, AvlTree t )
+{
+    if( t == NULL )
+    {
+        /* Create and return a one-node tree */
+        t = palloc0( sizeof( struct AvlNode ) );
+        if( t == NULL )
+        {
+            // out of space
+        }
+        else
+        {
+            t->intkey = key;
+            t->value = value;
+            t->height = 0;
+            t->left = NULL;
+            t->right = NULL;
+        }
+    }
+    else
+    {
+        int cmp = int_compare( key, t );
+        if( cmp < 0 )
+        {
+            t->left = int_insert( key, value, t->left );
+            if( height( t->left ) - height( t->right ) == 2 )
+            {
+                if( int_compare( key, t->left ) )
+                {
+                    t = singleRotateWithLeft( t );
+                }
+                else
+                {
+                    t = doubleRotateWithLeft( t );
+                }
+            }
+        }
+        else if( cmp > 0 )
+        {
+            t->right = int_insert( key, value, t->right );
+            if( height( t->right ) - height( t->left ) == 2 )
+            {
+                if( int_compare( key, t->right ) )
+                {
+                    t = singleRotateWithRight( t );
+                }
+                else
+                {
+                    t = doubleRotateWithRight( t );
+                }
+            }
+        }
+    }
+
+    t->height = max( height( t->left ), height( t->right ) ) + 1;
+    return t;
+}
+
 int value( Position p )
 {
     return p->value;
 }
 
 // return number of nodes
-int sort_perm( Position p, int * perm ) {
+int sort_perm( Position p, int * perm )
+{
     int n;
     if( p == NULL )
         return 0;
@@ -219,5 +290,39 @@ int sort_perm( Position p, int * perm ) {
     n = sort_perm( p->left, perm );
     perm[n++] = p->value;
     n += sort_perm( p->right, perm + n );
+    return n;
+}
+
+int tree_length(Position p)
+{
+    int n;
+    if( p == NULL )
+        return 0;
+
+    n = tree_length(p->left);
+    ++n;
+    n += tree_length(p->right);
+    return n;
+}
+
+int tree_to_pairs(Position p, Pairs *pairs, int4* buflen, int n)
+{
+    if(p == NULL)
+        return n;
+    n = tree_to_pairs(p->left, pairs, buflen, n);
+    ADD_PAIR(p->key, p->keylen, p->value, pairs, n, *buflen);
+    ++n;
+    n = tree_to_pairs(p->right, pairs, buflen, n);
+    return n;
+}
+
+int int_tree_to_pairs(Position p, Pairs *pairs, int4* buflen, int n)
+{
+    if(p == NULL)
+        return n;
+    n = int_tree_to_pairs(p->left, pairs, buflen, n);
+    ADD_INTPAIR(p->intkey, p->value, pairs, n, *buflen);
+    ++n;
+    n = int_tree_to_pairs(p->right, pairs, buflen, n);
     return n;
 }

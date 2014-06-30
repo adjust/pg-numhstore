@@ -1,57 +1,48 @@
 #include "array_add.h"
 
-int key_value_compare( const void * a, const void * b )
+Datum
+array_add(PG_FUNCTION_ARGS)
 {
-    KeyValuePair * key1 = ( KeyValuePair * ) a;
-    KeyValuePair * key2 = ( KeyValuePair * ) b;
-    return strcmp( key1->key , key2->key );
-}
+    Datum     *key_data,
+              *val_data;
+    Oid        key_type,
+               val_type;
+    ArrayType *input_keys,
+              *input_vals;
+    bool      *key_nulls,
+              *val_nulls;
+    int        key_count,
+               val_count,
+               i = 0,
+               n;
+    int16      key_typlen,
+               val_typlen;
+    bool       key_typbyval,
+               val_typbyval;
+    char       key_typalign,
+               val_typalign;
+    Pairs     *pairs;
+    HStore    *out;
+    int4       buflen = 0;
+    AvlTree    tree;
+    /*
+     * working vars
+     */
+    Position position;
+    size_t len;
+    char * key;
+    long value;
 
-void shrink_pairs(KeyValuePair * pairs, int new_size, int * old_size )
-{
-    KeyValuePair * swap;
-    if( new_size == * old_size )
-        /* no need to shrink */
-        return;
-    swap = ( KeyValuePair * ) palloc( new_size * sizeof( KeyValuePair ) );
-    memcpy(swap, pairs, new_size * sizeof( KeyValuePair ) );
-    pairs = swap;
-    *old_size = new_size;
-}
+    tree = make_empty(NULL);
 
-Datum array_add( PG_FUNCTION_ARGS )
-{
-    Datum * key_data, * val_data;
-    Oid key_type, val_type;
-    ArrayType * input_keys, * input_vals;
-    int * perm;
-    int i = 0, j = 0;
-    bool * key_nulls, * val_nulls;
-    int key_count, val_count;
-    int16 key_typlen, val_typlen;
-    bool key_typbyval, val_typbyval;
-    char key_typalign, val_typalign;
-
-    Pairs * hPairs;
-    HStore * out;
-    int4 buflen = 0;
-    AvlTree tree;
-    AEArray array;
-
-    tree = make_empty( NULL );
-    AEArray_init( &array, 100 );
-
-    if( PG_ARGISNULL( 0 ) || PG_ARGISNULL( 1 ) )
-    {
-        /* TODO: print warnings */
+    if (PG_ARGISNULL(0) || PG_ARGISNULL(1))
         PG_RETURN_NULL();
-    }
 
-    input_keys = PG_GETARG_ARRAYTYPE_P( 0 );
-    input_vals = PG_GETARG_ARRAYTYPE_P( 1 );
+    input_keys = PG_GETARG_ARRAYTYPE_P(0);
+    input_vals = PG_GETARG_ARRAYTYPE_P(1);
 
-    key_type = ARR_ELEMTYPE( input_keys );
-    val_type = ARR_ELEMTYPE( input_vals );
+    key_type = ARR_ELEMTYPE(input_keys);
+    val_type = ARR_ELEMTYPE(input_vals);
 
     get_typlenbyvalalign(
             key_type,
@@ -89,71 +80,27 @@ Datum array_add( PG_FUNCTION_ARGS )
             &val_count
             );
 
-    if( key_count != val_count )
-        elog( ERROR, "key and value error have different lenghts" );
+    if (key_count != val_count)
+        elog(ERROR, "key and value error have different lenghts");
 
-    hPairs = ( Pairs * ) palloc0( key_count * sizeof( Pairs ) );
-
-    for( i = 0; i < key_count; ++i )
+    for (i = 0; i < key_count; ++i)
     {
-        Position position;
-        size_t key_len;
-        char * current_key;
-        long current_value;
-        if( key_nulls[i] ) continue;
-
-        key_len = VARSIZE( key_data[i] ) - VARHDRSZ;
-        current_key = ( char * ) palloc0( key_len +1 );
-        memcpy( current_key, VARDATA( key_data[i] ), key_len );
-        current_key[key_len] = '\0';
-        current_value = DatumGetInt32( val_data[i] );
-        if (val_nulls[i]) {
+        if (key_nulls[i])
             continue;
-        }
-        position = find( current_key, key_len, tree );
-        if( position == NULL )
-        {
-            j = array.used;
-            tree = insert( current_key, key_len, j, tree );
-            AEArray_insert( &array, current_key, key_len );
-        }
+        DATUM_TO_CSTRING(key_data[i], key, len);
+        if (val_nulls[i])
+            continue;
+        value = DatumGetInt32(val_data[i]);
+        position = find(key, len, tree);
+        if (position == NULL)
+            tree = insert(key, len, value, tree);
         else
-        {
-            j = value( position );
-        }
-
-        array.counts[j] += current_value;
+            position->value += value;
     }
 
-    // save sort permutation to create pairs in order of ascending keys
-    // we assume that postgres stores the pairs in that order
-    perm = ( int * ) palloc ( array.used * sizeof( int ) );
-    sort_perm( tree, perm );
-
-    make_empty( tree );
-
-    hPairs = palloc0( array.used * sizeof( Pairs ) );
-    for( i = 0; i < array.used; i++ )
-    {
-        int digit_num;
-        char * dig_str;
-        j = perm[i];
-        if( array.array[j] == NULL ) break;
-
-        digit_num = adeven_get_digit_num( array.counts[j] );
-        dig_str = (char * ) palloc0 ( digit_num + 1 );
-        dig_str[digit_num] = '\0';
-        sprintf( dig_str, "%ld", array.counts[j] );
-        hPairs[i].key = array.array[j];
-        hPairs[i].keylen = array.sizes[j];
-        hPairs[i].val = dig_str;
-        hPairs[i].vallen = digit_num;
-        hPairs[i].isnull = false;
-        hPairs[i].needfree = false;
-        buflen += hPairs[i].keylen;
-        buflen += hPairs[i].vallen;
-    }
-
-    out = hstorePairs( hPairs, i, buflen );
-    PG_RETURN_POINTER( out );
+    n = tree_length(tree);
+    pairs = palloc0(n * sizeof(Pairs));
+    tree_to_pairs(tree, pairs, &buflen, 0);
+    out = hstorePairs(pairs, n, buflen);
+    PG_RETURN_POINTER(out);
 }

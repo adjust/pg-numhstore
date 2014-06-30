@@ -211,19 +211,7 @@ Datum hstore_add( PG_FUNCTION_ARGS )
     pairs = palloc0( a.used * sizeof( Pairs ) );
     for( i = 0; i < a.used; ++i )
     {
-        size_t datum_len = a.sizes[i];
-        int digit_num = adeven_get_digit_num( a.vals[i] );
-        char * dig_str = palloc0( digit_num );
-        sprintf( dig_str, "%ld", a.vals[i] );
-        a.vstr[i] = dig_str;
-        pairs[i].key = a.keys[i];
-        pairs[i].keylen =  datum_len;
-        pairs[i].val = dig_str;
-        pairs[i].vallen =  digit_num;
-        pairs[i].isnull = false;
-        pairs[i].needfree = false;
-        buflen += pairs[i].keylen;
-        buflen += pairs[i].vallen;
+        ADD_PAIR(a.keys[i], a.sizes[i], a.vals[i], pairs, i, buflen);
     }
 
     out = hstorePairs( pairs, a.used, buflen );

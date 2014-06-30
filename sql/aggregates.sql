@@ -64,19 +64,19 @@ initcond = '{}'
 
 
 -- the aggregation sum of hstores
-CREATE AGGREGATE sum (
-sfunc = hstore_add,
-basetype = inthstore,
-stype = inthstore,
-initcond = ''
-);
+--CREATE AGGREGATE sum (
+--sfunc = hstore_add,
+--basetype = inthstore,
+--stype = inthstore,
+--initcond = ''
+--);
 
--- CREATE AGGREGATE sum (
--- sfunc = array_agg_transfn,
--- basetype = inthstore,
--- stype = internal,
--- finalfunc = hstore_array_finalfn
--- );
+CREATE AGGREGATE sum (
+sfunc = array_agg_transfn,
+basetype = inthstore,
+stype = internal,
+finalfunc = hstore_array_finalfn
+);
 
 CREATE AGGREGATE sum (
 sfunc = hstore_add,

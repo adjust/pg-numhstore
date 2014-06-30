@@ -1,67 +1,26 @@
 #include "hstore_array.h"
 
-void HAArray_init(HAArray *a, size_t initial_size)
-{
-    a->entry = palloc0(initial_size * sizeof(HAEntry));
-    a->used  = 0;
-    a->size  = initial_size;
-}
-
-void HAArray_insert(HAArray *a, char *key, int len, long val)
-{
-    if(a->size == a->used) {
-        HAEntry  *entry_swap = a->entry;
-        a->size *= 2;
-        a->entry = palloc0(a->size * sizeof(HAEntry));
-        memcpy(a->entry, entry_swap, a->used * sizeof(HAEntry));
-        pfree(entry_swap);
-    }
-    a->entry[a->used].key = key;
-    a->entry[a->used].len = len;
-    a->entry[a->used++].val = val;
-}
-
-int HAArray_cmp(const void *a, const void *b)
-{
-    HAEntry *_a = (HAEntry *)a;
-    HAEntry *_b = (HAEntry *)b;
-    if(_a->len < _b->len)
-        return -1;
-    else if (_a->len > _b->len)
-        return 1;
-    else
-        return strncmp(_a->key, _b->key, _a->len);
-}
-
-void inline HAArray_sort(HAArray *a)
-{
-    qsort(a->entry, a->used, sizeof(HAEntry), HAArray_cmp);
-}
-
 Datum array_to_hstore(Datum *data, int count, bool *nulls)
 {
-    HStore *hstore,
-           *out;
-
+    HStore *hstore;
+    HStore *out;
     HEntry *entries;
-
     char   *key,
            *base;
-
     long    val;
     size_t  len;
-
     int     hstore_count,
             index,
             i,
+            n,
             j = 0;
-
-    HAArray a;
     Pairs   *pairs;
     bool     skip   = false;
     int4     buflen = 0;
+    AvlTree  tree;
+    Position position;
 
-    HAArray_init(&a, 200);
+    tree = make_empty(NULL);
     for (i = 0; i < count; ++i)
     {
         if (nulls[i])
@@ -73,42 +32,17 @@ Datum array_to_hstore(Datum *data, int count, bool *nulls)
         for (index = 0; index < hstore_count; ++index)
         {
             adeven_add_read_pair(entries, base, index, &key, &val, &len);
-            HAArray_insert(&a, key, len, val);
+            position = find(key, len, tree);
+            if (position == NULL)
+                tree = insert(key, len, val, tree);
+            else
+                position->value += val;
         }
     }
-    HAArray_sort(&a);
-
-    pairs = palloc0(a.used * sizeof(Pairs));
-    for (i = 0; i < a.used; ++i)
-    {
-        int digit_num;
-        char *num_str;
-        int local = i+1;
-        if (i < a.used - 1) {
-            while (local < a.used && HAArray_cmp(&a.entry[i], &a.entry[local]) == 0)
-            {
-                a.entry[i].val += a.entry[local++].val;
-                skip = true;
-            }
-        }
-        digit_num = adeven_get_digit_num(a.entry[i].val);
-        num_str = palloc0(digit_num+1);
-        sprintf(num_str, "%ld", a.entry[i].val);
-        pairs[j].key = a.entry[i].key;
-        pairs[j].keylen = a.entry[i].len;
-        pairs[j].val = num_str;
-        pairs[j].vallen = digit_num;
-        pairs[j].isnull = false;
-        pairs[j].needfree = false;
-        buflen += pairs[j].keylen;
-        buflen += pairs[j++].vallen;
-        if(skip)
-        {
-            i = --local;
-            skip = false;
-        }
-    }
-    out = hstorePairs(pairs, j, buflen);
+    n = tree_length(tree);
+    pairs = palloc0(n * sizeof *pairs);
+    tree_to_pairs(tree, pairs, &buflen, 0);
+    out = hstorePairs(pairs, n, buflen);
     PG_RETURN_POINTER(out);
 }
 
@@ -124,9 +58,7 @@ Datum hstore_array(PG_FUNCTION_ARGS)
     int         count;
 
     if (PG_ARGISNULL(0))
-    {
         PG_RETURN_NULL();
-    }
 
     input = PG_GETARG_ARRAYTYPE_P(0);
     type  = ARR_ELEMTYPE(input);
@@ -160,9 +92,7 @@ Datum hstore_array_finalfn(PG_FUNCTION_ARGS)
     int              count;
 
     if (PG_ARGISNULL(0))
-    {
         PG_RETURN_NULL();
-    }
 
     Assert(AggCheckCallContext(fcinfo, NULL));
 
