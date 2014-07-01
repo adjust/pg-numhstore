@@ -1,5 +1,5 @@
-#ifndef _AvlTree_H
-#define _AvlTree_H
+#ifndef _DATA_TYPES_H
+#define _DATA_TYPES_H
 
 #include "pg_numhstore.h"
 
@@ -23,7 +23,7 @@ struct AvlNode
     int      height;
 };
 
-int value( Position p );
+int node_value( Position p );
 
 AvlTree make_empty( AvlTree t );
 
@@ -41,4 +41,20 @@ int tree_length(Position p);
 
 int int_tree_to_pairs(Position p, Pairs *pairs, int4 *buflen, int n);
 int tree_to_pairs(Position p, Pairs *pairs, int4 *buflen, int n);
-#endif // _AvlTree_H
+
+typedef struct {
+    char  **keys;
+    char  **vstr;
+    long   *vals;
+    int    *sizes;
+    size_t  used;
+    size_t  size;
+    bool   *found;
+} Array;
+
+void init_array(Array *a, size_t initial_size);
+void insert_array(Array *a, char *key, long val, int elem_size);
+void free_array(Array *a);
+int  compare_array(char *key1, int keylen1, char *key2, int keylen2);
+
+#endif // _DATA_TYPES_H

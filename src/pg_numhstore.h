@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <catalog/pg_type.h>
 #include "hstore.h"
-#include "avltree.h"
+#include "data_types.h"
 
 /*
  * reimplementation of static postgres/hstore functions
@@ -46,10 +46,21 @@ HStore* adeven_count_int_array(Datum *i_data, int n, bool *nulls);
 HStore* adeven_count_text_array(Datum *i_data, int n, bool *nulls);
 
 /*
+ * hstore_add function used to merge two inthstores into one
+ */
+Datum hstore_add( PG_FUNCTION_ARGS );
+
+/*
  * helper function used to get the width of the string
  * representation of a given long integer excluding terminating NULL
  */
 size_t width_as_string(long number);
+
+/*
+ * create and return an empty hstore
+ */
+#define PG_RETURN_EMPTY_HSTORE PG_RETURN_POINTER(hstorePairs( 0, 0, 0))
+
 
 /*
  * macro used to extract an hstore key from position _index from
@@ -57,7 +68,7 @@ size_t width_as_string(long number);
  */
 #define HENTRY_KEY(_entries, _index, _base, _key, _keylen)      \
     do {                                                        \
-        _keylen = HS_KEYLEN(_entries, _index);                    \
+        _keylen = HS_KEYLEN(_entries, _index);                  \
         _key = palloc0(_keylen + 1);                            \
         memcpy(_key, HS_KEY(_entries, _base, _index), _keylen); \
     } while(0)

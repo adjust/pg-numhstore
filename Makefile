@@ -3,7 +3,7 @@ EXTVERSION   = $(shell grep default_version $(EXTENSION).control | \
 			   sed -e "s/default_version[[:space:]]*=[[:space:]]*'\([^']*\)'/\1/")
 DATA         = $(filter-out $(wildcard sql/*--*.sql),$(wildcard sql/*.sql))
 MODULE_big = pg_numhstore
-OBJS = src/hstore_array.o src/array_count.o src/avltree.o src/hstore_add.o src/array_add.o src/pg_numhstore.o
+OBJS = src/hstore_array.o src/array_count.o src/data_types.o src/hstore_add.o src/array_add.o src/pg_numhstore.o
 
 TESTS        = setup $(filter-out test/sql/setup.sql test/sql/update.sql, $(wildcard test/sql/*.sql)) \
 							 update $(filter-out test/sql/setup.sql test/sql/update.sql, $(wildcard test/sql/*.sql))

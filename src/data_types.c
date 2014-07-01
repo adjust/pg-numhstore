@@ -1,7 +1,7 @@
-#include "avltree.h"
+#include "data_types.h"
 
 int inline
-value(Position p)
+node_value(Position p)
 {
     return p->value;
 }
@@ -84,7 +84,8 @@ find(char *key, int keylen, AvlTree t)
         return t;
 }
 
-Position int_find(int key, AvlTree t)
+Position
+int_find(int key, AvlTree t)
 {
     int cmp;
 
@@ -315,4 +316,87 @@ int_tree_to_pairs(Position p, Pairs *pairs, int4* buflen, int n)
     ++n;
     n = int_tree_to_pairs(p->right, pairs, buflen, n);
     return n;
+}
+
+void
+init_array(Array *a, size_t initial_size)
+{
+    a->keys  = (char **)palloc0(initial_size * sizeof(char *));
+    a->vstr  = (char **)palloc0(initial_size * sizeof(char *));
+    a->vals  = (long * )palloc0(initial_size * sizeof(long *));
+    a->sizes = (int  * )palloc0(initial_size * sizeof(int  *));
+    a->found = (bool * )palloc0(initial_size * sizeof(bool *));
+    a->used  = 0;
+    a->size  = initial_size;
+}
+
+void
+insert_array(Array *a, char *key, long val, int elem_size)
+{
+    if (a->used == a->size)
+    {
+        char **keys_swap;
+        char **vstr_swap;
+        long  *vals_swap;
+        int   *sizes_swap = a->sizes;
+        bool  *found_swap = a->found;
+        int    i = a->size;
+        a->size *= 2;
+
+        keys_swap = a->keys;
+        a->keys = (char **)palloc0(a->size * sizeof(char *));
+        memcpy(a->keys, keys_swap, sizeof(char *) * i);
+        pfree(keys_swap);
+
+        vstr_swap = a->vstr;
+        a->vstr = (char **)palloc0(a->size * sizeof(char *));
+        memcpy(a->vstr, vstr_swap, sizeof(char *) * i);
+        pfree(vstr_swap);
+
+        vals_swap = a->vals;
+        a->vals = (long *)palloc0(a->size * sizeof(long));
+        memcpy(a->vals, vals_swap, sizeof(long) * i);
+        pfree(vals_swap);
+
+        sizes_swap = a->sizes;
+        a->sizes = (int *)palloc0(a->size * sizeof(int));
+        memcpy(a->sizes, sizes_swap, sizeof(int) * i);
+        pfree(sizes_swap);
+
+        found_swap = a->found;
+        a->found = (bool *)palloc0(a->size * sizeof(bool));
+        memcpy(a->found, found_swap, sizeof(bool) * i);
+        pfree(found_swap);
+    }
+    a->keys[a->used]   = key;
+    a->sizes[a->used]  = elem_size;
+    a->vals[a->used++] = val;
+}
+
+void
+free_array(Array *a)
+{
+    pfree(a->keys);
+    pfree(a->vstr);
+    pfree(a->vals);
+    pfree(a->sizes);
+    pfree(a->found);
+    a->keys  = NULL;
+    a->vstr  = NULL;
+    a->vals  = NULL;
+    a->found = NULL;
+    a->used  = a->size = 0;
+}
+
+int
+compare_array(char *key1, int keylen1, char *key2, int keylen2)
+{
+    int  cmp;
+    if (keylen1 < keylen2)
+        return -1;
+    if (keylen1 > keylen2)
+        return 1;
+
+    cmp = strncmp(key1, key2, keylen1);
+    return cmp;
 }
