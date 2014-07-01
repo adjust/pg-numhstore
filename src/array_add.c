@@ -32,8 +32,8 @@ array_add(PG_FUNCTION_ARGS)
      */
     Position position;
     size_t len;
-    char * key;
-    long value;
+    char  *key;
+    long   value;
 
     tree = make_empty(NULL);
 
