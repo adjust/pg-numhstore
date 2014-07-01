@@ -28,6 +28,7 @@ adeven_count_text_array(Datum *i_data, int n, bool *nulls)
     n = tree_length(tree);
     pairs = palloc0(n * sizeof *pairs);
     tree_to_pairs(tree, pairs, &buflen, 0);
+    make_empty(tree);
     return hstorePairs( pairs, n, buflen );
 }
 
@@ -59,6 +60,7 @@ adeven_count_int_array(Datum *i_data, int n, bool *nulls)
     n = tree_length(tree);
     pairs = palloc0(n * sizeof *pairs);
     int_tree_to_pairs(tree, pairs, &buflen, 0);
+    make_empty(tree);
     return hstorePairs(pairs, n, buflen);
 }
 

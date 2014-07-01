@@ -43,6 +43,7 @@ Datum array_to_hstore(Datum *data, int count, bool *nulls)
     n = tree_length(tree);
     pairs = palloc0(n * sizeof *pairs);
     tree_to_pairs(tree, pairs, &buflen, 0);
+    make_empty(tree);
     out = hstorePairs(pairs, n, buflen);
     PG_RETURN_POINTER(out);
 }
