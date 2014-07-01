@@ -1,4 +1,7 @@
-#include "hstore_array.h"
+#include "pg_numhstore.h"
+
+PG_FUNCTION_INFO_V1( hstore_array );
+PG_FUNCTION_INFO_V1( hstore_array_finalfn );
 
 Datum array_to_hstore(Datum *data, int count, bool *nulls)
 {
@@ -29,7 +32,7 @@ Datum array_to_hstore(Datum *data, int count, bool *nulls)
         hstore_count = HS_COUNT(hstore);
         for (index = 0; index < hstore_count; ++index)
         {
-            adeven_add_read_pair(entries, base, index, &key, &val, &len);
+            READ_PAIR(entries, base, index, &key, &val, &len);
             position = find(key, len, tree);
             if (position == NULL)
                 tree = insert(key, len, val, tree);

@@ -1,4 +1,6 @@
-#include "array_count.h"
+#include "pg_numhstore.h"
+
+PG_FUNCTION_INFO_V1(array_count);
 
 HStore*
 adeven_count_text_array(Datum *i_data, int n, bool *nulls)

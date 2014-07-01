@@ -1,4 +1,6 @@
-#include "array_add.h"
+#include "pg_numhstore.h"
+
+PG_FUNCTION_INFO_V1(array_add);
 
 Datum
 array_add(PG_FUNCTION_ARGS)
@@ -102,5 +104,6 @@ array_add(PG_FUNCTION_ARGS)
     pairs = palloc0(n * sizeof(Pairs));
     tree_to_pairs(tree, pairs, &buflen, 0);
     out = hstorePairs(pairs, n, buflen);
+    make_empty(tree);
     PG_RETURN_POINTER(out);
 }
