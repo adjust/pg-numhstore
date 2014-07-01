@@ -2,17 +2,17 @@
 
 Datum array_to_hstore(Datum *data, int count, bool *nulls)
 {
-    HStore *hstore;
-    HStore *out;
-    HEntry *entries;
-    char   *key,
-           *base;
-    long    val;
-    size_t  len;
-    int     hstore_count,
-            index,
-            i,
-            n;
+    HStore  *hstore;
+    HStore  *out;
+    HEntry  *entries;
+    char    *key,
+            *base;
+    long     val;
+    size_t   len;
+    int      hstore_count,
+             index,
+             i,
+             n;
     Pairs   *pairs;
     int4     buflen = 0;
     AvlTree  tree;
