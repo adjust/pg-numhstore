@@ -106,7 +106,7 @@ size_t width_as_string(long number);
 #define DATUM_TO_CSTRING(_datum, _str, _len) \
     do {                                     \
     _len = VARSIZE(_datum) - VARHDRSZ;       \
-    _str = palloc(_len);                     \
+    _str = palloc0(_len + 1);                \
     memcpy(_str, VARDATA(_datum), _len);     \
     } while(0)
 
