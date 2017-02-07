@@ -1,2 +1,12 @@
 #!/bin/bash
-sudo make clean && sudo make && sudo make install && sudo make installcheck
+
+sudo=''
+case "${HOSTNAME}" in
+vm*)
+    ;;
+*)
+    sudo='sudo'
+    ;;
+esac
+
+$sudo make clean && $sudo make && $sudo make install && $sudo make installcheck
